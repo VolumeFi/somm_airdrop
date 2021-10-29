@@ -8,10 +8,10 @@ jobs:
   create-dataset:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/setup-gcloud@master
+      - uses: actions/checkout@v2
 
       - name: Setup gcloud SDK
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@master
         with:
           version: '309.0.0'
           project_id: ${{ secrets.GCP_PROJECT_ID }}
@@ -49,10 +49,10 @@ jobs:
           - file: "./src/11_sanity_checks.sql"
 
     steps:
-      - uses: google-github-actions/setup-gcloud@master
+      - uses: actions/checkout@v2
 
       - name: Setup gcloud SDK
-        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      - uses: google-github-actions/setup-gcloud@master
         with:
           version: '309.0.0'
           project_id: ${{ secrets.GCP_PROJECT_ID }}
