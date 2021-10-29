@@ -8,7 +8,7 @@ jobs:
   create-dataset:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
 
       - name: Setup gcloud SDK
       - uses: google-github-actions/setup-gcloud@master
@@ -49,7 +49,7 @@ jobs:
           - file: "./src/11_sanity_checks.sql"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
 
       - name: Setup gcloud SDK
       - uses: google-github-actions/setup-gcloud@master
