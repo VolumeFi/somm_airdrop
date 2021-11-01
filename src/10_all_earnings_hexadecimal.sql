@@ -16,4 +16,4 @@ BEGIN
            reasons
     FROM all_earnings);
 
-END;
+-- END;

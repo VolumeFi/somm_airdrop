@@ -53,4 +53,4 @@ BEGIN
         SELECT DISTINCT address FROM socks_redeemers
     );
 
-END;
+-- END;
