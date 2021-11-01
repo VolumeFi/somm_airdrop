@@ -43,4 +43,4 @@ BEGIN -- returns each address and how much UNI it should receive
       FROM combined_earnings
       GROUP BY address
     );
-END;
+-- END;

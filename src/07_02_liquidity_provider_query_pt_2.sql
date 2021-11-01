@@ -147,4 +147,4 @@ CREATE TABLE lp_query_part_2 AS (
     SELECT * FROM with_address_earned_delta
 );
 
-END;
+-- END;
