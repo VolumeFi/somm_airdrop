@@ -59,4 +59,4 @@ CREATE TABLE user_query AS (
   )
 );
 
-END;
+-- END;
