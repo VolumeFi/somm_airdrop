@@ -81,4 +81,4 @@ switch (topics[ 0 ]) {
             -- AND NOT exchange='0x009211344ee05ff3f69d9aadf0d3a0ab099c5363' -- avoid overflowing liquidity tokens
         );
 
-END;
+-- END;

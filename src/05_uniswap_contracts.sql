@@ -25,4 +25,4 @@ CREATE TABLE uniswap_contracts AS (
   SELECT '0xc0a47dfe034b400b47bdad5fecda2621de6c4d95' as contract -- Uniswap v1 Factory
 );
 
-END;
+-- END;

@@ -246,4 +246,4 @@ FROM with_prices
 
     );
 
-END;
+-- END;
