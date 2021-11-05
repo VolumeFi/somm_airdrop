@@ -26,6 +26,7 @@ FROM parsed_v1_logs as parsed_logs
           JOIN uniswap_v1_pairs ON token_transfers.token_address = uniswap_v1_pairs.pair)
 
 -- Take the union of all Uniswap v1 events
+---------------------------------------------------
 ,uniswap_v1_events AS (SELECT
      *
 FROM deltas
@@ -53,6 +54,7 @@ SELECT
     ,pair
     ,0 as delta_eth
 FROM v1_transfers)
+---------------------------------------------------
 
 ,overflowing_pairs AS
 (SELECT DISTINCT pair
