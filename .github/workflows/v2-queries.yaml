@@ -43,10 +43,11 @@ jobs:
           - file: "./src/sql_queries/07_01_liquidity_provider_query_pt_1.sql"
           - file: "./src/sql_queries/07_02_liquidity_provider_query_pt_2.sql"
           - file: "./src/sql_queries/07_03_liquidity_provider_query_pt_3.sql"
-          - file: "./src/sql_queries/08_socks.sql"
-          - file: "./src/sql_queries/09_all_earnings.sql"
-          - file: "./src/sql_queries/10_all_earnings_hexadecimal.sql"
-          - file: "./src/sql_queries/11_sanity_checks.sql"
+          # - file: "./src/sql_queries/08_socks.sql"
+          # - file: "./src/sql_queries/09_all_earnings.sql"
+          # - file: "./src/sql_queries/10_all_earnings_hexadecimal.sql"
+          # - file: "./src/sql_queries/11_sanity_checks.sql"
+
 
     steps:
       - uses: actions/checkout@v2
