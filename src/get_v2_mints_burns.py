@@ -8,6 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 from etherscan_connector import EtherscanApiConnector
 import math
+import datetime
 
 api_rate_limit_message = "Max rate limit reached"
 
@@ -42,7 +43,7 @@ SOMM_V2_CONTRACTS = [
         "name": "Release2 Remove",
         "address": "0x430f33353490b256D2fD7bBD9DaDF3BB7f905E78",
         "abi": [{"stateMutability":"nonpayable","type":"constructor","inputs":[],"outputs":[]},{"stateMutability":"payable","type":"function","name":"divestUniPairToToken","inputs":[{"name":"pair","type":"address"},{"name":"token","type":"address"},{"name":"amount","type":"uint256"},{"name":"minTokenAmount","type":"uint256"}],"outputs":[{"name":"","type":"uint256"}]},{"stateMutability":"payable","type":"function","name":"divestUniPairToToken","inputs":[{"name":"pair","type":"address"},{"name":"token","type":"address"},{"name":"amount","type":"uint256"},{"name":"minTokenAmount","type":"uint256"},{"name":"deadline","type":"uint256"}],"outputs":[{"name":"","type":"uint256"}]},{"stateMutability":"nonpayable","type":"function","name":"removeLiquidity","inputs":[{"name":"tokenA","type":"address"},{"name":"tokenB","type":"address"},{"name":"liquidity","type":"uint256"},{"name":"amountAMin","type":"uint256"},{"name":"amountBMin","type":"uint256"},{"name":"to","type":"address"}],"outputs":[{"name":"","type":"uint256"},{"name":"","type":"uint256"}]},{"stateMutability":"nonpayable","type":"function","name":"removeLiquidity","inputs":[{"name":"tokenA","type":"address"},{"name":"tokenB","type":"address"},{"name":"liquidity","type":"uint256"},{"name":"amountAMin","type":"uint256"},{"name":"amountBMin","type":"uint256"},{"name":"to","type":"address"},{"name":"deadline","type":"uint256"}],"outputs":[{"name":"","type":"uint256"},{"name":"","type":"uint256"}]},{"stateMutability":"nonpayable","type":"function","name":"removeLiquidityETH","inputs":[{"name":"token","type":"address"},{"name":"liquidity","type":"uint256"},{"name":"amountTokenMin","type":"uint256"},{"name":"amountETHMin","type":"uint256"},{"name":"to","type":"address"}],"outputs":[{"name":"","type":"uint256"},{"name":"","type":"uint256"}]},{"stateMutability":"nonpayable","type":"function","name":"removeLiquidityETH","inputs":[{"name":"token","type":"address"},{"name":"liquidity","type":"uint256"},{"name":"amountTokenMin","type":"uint256"},{"name":"amountETHMin","type":"uint256"},{"name":"to","type":"address"},{"name":"deadline","type":"uint256"}],"outputs":[{"name":"","type":"uint256"},{"name":"","type":"uint256"}]},{"stateMutability":"nonpayable","type":"function","name":"pause","inputs":[{"name":"_paused","type":"bool"}],"outputs":[],"gas":36454},{"stateMutability":"nonpayable","type":"function","name":"newAdmin","inputs":[{"name":"_admin","type":"address"}],"outputs":[],"gas":36484},{"stateMutability":"nonpayable","type":"function","name":"newFeeAmount","inputs":[{"name":"_feeAmount","type":"uint256"}],"outputs":[],"gas":36414},{"stateMutability":"nonpayable","type":"function","name":"newFeeAddress","inputs":[{"name":"_feeAddress","type":"address"}],"outputs":[],"gas":36544},{"stateMutability":"payable","type":"fallback"},{"stateMutability":"view","type":"function","name":"paused","inputs":[],"outputs":[{"name":"","type":"bool"}],"gas":1388},{"stateMutability":"view","type":"function","name":"admin","inputs":[],"outputs":[{"name":"","type":"address"}],"gas":1418},{"stateMutability":"view","type":"function","name":"feeAmount","inputs":[],"outputs":[{"name":"","type":"uint256"}],"gas":1448},{"stateMutability":"view","type":"function","name":"feeAddress","inputs":[],"outputs":[{"name":"","type":"address"}],"gas":1478}],
-        "topic0": "0xdccd412f0b1252819cb1fd330b93224ca42612892bb3f4f789976e6d81936496"
+        "topic0": "0xdccd412f0b1252819cb1fd330b93224ca42612892bb3f4f789976e6d81936496" # Burn
     }
 ]
 
@@ -52,6 +53,10 @@ if __name__ == "__main__":
     etherscan_conn = EtherscanApiConnector()
 
     mints_burns_dict = []
+
+    # Get latest block number before October 31, 2021
+    timestamp = int(datetime.datetime.strptime('10/31/2021', '%m/%d/%Y').strftime("%s"))
+    maximum_block_number = int(etherscan_conn.get_block_number_before_timestamp(timestamp=timestamp))
     
     for somm_contract_dict in SOMM_V2_CONTRACTS:
         normal_txs = etherscan_conn.get_normal_transactions(somm_contract_dict["address"])
@@ -74,7 +79,10 @@ if __name__ == "__main__":
 
                         event_dict['somm_user_address'] = tx_receipt['from']
                         event_dict["pool"] = tx_log["address"]
-                        mints_burns_dict.append(event_dict)
+
+                        # Only count transactions with block number < maximum block number
+                        if int(tx_receipt['blockNumber'], 16) < maximum_block_number:
+                            mints_burns_dict.append(event_dict)
 
 
     mints_burns_df = pd.DataFrame(mints_burns_dict)
