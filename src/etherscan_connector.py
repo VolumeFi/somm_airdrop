@@ -18,6 +18,9 @@ class EtherscanApiConnector(object):
     
     CONTRACT_ABI_URL = etherscan_api + \
         "module=contract&action=getabi&address={address}&apikey={api_key}"
+    
+    BLOCK_NUMBER_BY_TIMESTAMP = etherscan_api + \
+        "module=block&action=getblocknobytime&timestamp={timestamp}&closest=before&apikey={api_key}"
 
     API_KEY = "FCD48UAF7G87XBTK3G934Q42MCV8PE3TVM"
 
@@ -70,5 +73,9 @@ class EtherscanApiConnector(object):
     
     def get_contract_abi(self, address: str):
         query = self.CONTRACT_ABI_URL.format(address=address, api_key=self.API_KEY)
+        return self._execute_query(query)
+    
+    def get_block_number_before_timestamp(self, timestamp: int):
+        query = self.BLOCK_NUMBER_BY_TIMESTAMP.format(timestamp=timestamp, api_key=self.API_KEY)
         return self._execute_query(query)
 
