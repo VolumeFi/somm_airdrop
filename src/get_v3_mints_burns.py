@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
     mints_burns_df = pd.DataFrame(mints_burns_dict)
     unique_somm_users = mints_burns_df['somm_user_address'].unique().tolist()
-    mints_burns_df.to_csv("somm_mints_burns.csv")
-    pd.Series(mints_burns_df['somm_user_address'].unique()).to_csv("somm_user_addresses.csv")
+    mints_burns_df.to_csv("somm_v3_mints_burns.csv")
+    pd.Series(mints_burns_df['somm_user_address'].unique()).to_csv("somm_v3_user_addresses.csv")
 
     breakpoint()
