@@ -1,4 +1,4 @@
-name: Run Queries
+name: Run V2 Queries
 
 on:
   # manual run
@@ -34,19 +34,19 @@ jobs:
       max-parallel: 1
       matrix:
         schema:
-          - file: "./src/01_uniswap_v1_pairs.sql"
-          - file: "./src/02_uniswap_v2_pairs.sql"
-          - file: "./src/03_uniswap_v2_syncs.sql"
-          - file: "./src/04_parsed_v1_logs.sql"
-          - file: "./src/05_uniswap_contracts.sql"
-          - file: "./src/06_user_query.sql"
-          - file: "./src/07_01_liquidity_provider_query_pt_1.sql"
-          - file: "./src/07_02_liquidity_provider_query_pt_2.sql"
-          - file: "./src/07_03_liquidity_provider_query_pt_3.sql"
-          - file: "./src/08_socks.sql"
-          - file: "./src/09_all_earnings.sql"
-          - file: "./src/10_all_earnings_hexadecimal.sql"
-          - file: "./src/11_sanity_checks.sql"
+          - file: "./src/sql_queries/01_uniswap_v1_pairs.sql"
+          - file: "./src/sql_queries/02_uniswap_v2_pairs.sql"
+          - file: "./src/sql_queries/03_uniswap_v2_syncs.sql"
+          - file: "./src/sql_queries/04_parsed_v1_logs.sql"
+          - file: "./src/sql_queries/05_uniswap_contracts.sql"
+          - file: "./src/sql_queries/06_user_query.sql"
+          - file: "./src/sql_queries/07_01_liquidity_provider_query_pt_1.sql"
+          - file: "./src/sql_queries/07_02_liquidity_provider_query_pt_2.sql"
+          - file: "./src/sql_queries/07_03_liquidity_provider_query_pt_3.sql"
+          - file: "./src/sql_queries/08_socks.sql"
+          - file: "./src/sql_queries/09_all_earnings.sql"
+          - file: "./src/sql_queries/10_all_earnings_hexadecimal.sql"
+          - file: "./src/sql_queries/11_sanity_checks.sql"
 
     steps:
       - uses: actions/checkout@v2
