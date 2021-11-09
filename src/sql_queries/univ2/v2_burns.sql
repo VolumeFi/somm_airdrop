@@ -18,7 +18,7 @@ SELECT
     logs.block_timestamp AS block_timestamp
      ,logs.block_number AS block_number
      ,logs.transaction_hash AS transaction_hash
-     ,logs.address as sender_address
+     ,PARSE_BURN(logs.data, logs.topics).sender as sender_address
      ,PARSE_BURN(logs.data, logs.topics).amount0 AS amount0
      ,PARSE_BURN(logs.data, logs.topics).amount1 AS Amount1
      ,address as pair
