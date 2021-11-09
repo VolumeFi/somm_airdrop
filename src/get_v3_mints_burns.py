@@ -5,6 +5,7 @@ import json
 import pandas as pd
 from tqdm import tqdm
 from etherscan_connector import EtherscanApiConnector
+import datetime
 
 api_rate_limit_message = "Max rate limit reached"
 
@@ -53,12 +54,22 @@ SOMM_V3_CONTRACTS = [
     }
 ]
 
+MINT_BURN_TOPICS = {
+    "0x7a53080ba414158be7ec69b987b5fb7d07dee101fe85488f0853ae16239d0bde": "mint",
+    "0x0c396cd989a39f4459b5fa1aed6a9a8dcdbc45908acfd67e028cd568da98982c": "burn"
+}
+
 
 
 if __name__ == "__main__":
     etherscan_conn = EtherscanApiConnector()
 
     mints_burns_dict = []
+
+    # Get latest block number before October 31, 2021
+    timestamp = int(datetime.datetime.strptime('10/31/2021', '%m/%d/%Y').strftime("%s"))
+    maximum_block_number = int(etherscan_conn.get_block_number_before_timestamp(timestamp=timestamp))
+
     
     for somm_contract_dict in SOMM_V3_CONTRACTS:
         contract_events = etherscan_conn.get_event_log(
@@ -68,9 +79,12 @@ if __name__ == "__main__":
             decoded_event = decode_log(
                 event['data'], topics=event['topics'], abi=somm_contract_dict["abi"])
 
-
-            event_dict = json.loads(decoded_event[1])
             # event_dict keys: [token0, token1, liquidity, amount0, amount1, somm_user_address]
+            event_dict = {}
+
+            decoded_event_dict = json.loads(decoded_event[1])
+
+            event_dict['liquidity'] = decoded_event_dict['liquidity']
 
             if decoded_event[0] == "RemovedLiquidity":
                 event_dict['liquidity'] *= -1
@@ -78,8 +92,19 @@ if __name__ == "__main__":
             event_tx_receipt = etherscan_conn.get_tx_receipt(
                 transaction_string=event['transactionHash'])
             event_dict['somm_user_address'] = event_tx_receipt['from']
-            
-            mints_burns_dict.append(event_dict)
+
+            # Use transaction logs to get pool address
+            pool = None
+            for tx_log in event_tx_receipt["logs"]:
+                if tx_log["topics"][0] in MINT_BURN_TOPICS:
+                    pool = tx_log["address"] 
+
+            assert pool is not None
+            event_dict["pool"] = pool
+
+            # Only count transactions with block number < maximum block number
+            if int(event_tx_receipt['blockNumber'], 16) < maximum_block_number:
+                mints_burns_dict.append(event_dict)
 
     mints_burns_df = pd.DataFrame(mints_burns_dict)
     unique_somm_users = mints_burns_df['somm_user_address'].unique().tolist()
