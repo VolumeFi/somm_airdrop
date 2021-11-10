@@ -1,2 +1,5 @@
 __pycache__/
+*__pycache__*
 .vscode/
+
+src/uni_v2_positions/data/*
