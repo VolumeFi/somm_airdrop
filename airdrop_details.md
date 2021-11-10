@@ -28,9 +28,10 @@ For each user, we calculate $V_p$ for each position they entered using the SOMM 
 2. Computing amount
     * There's one **problem** with the method described previously: we are ignoring differences in liquidity amounts for each pool. 
     * What we actually want liquidity to mean is "amount of USD entered into position." In reality, liquidity is dependent on things like ERC20 token decimal values.
-    * Basically the question is: how do we compare liquidity amounts across pools?
-    * One solution (less ideal, but easy): Ignore this. Just treat liquidity the same across pools. 
-    * Another solution (more ideal, but challenging): Before computing liquidity, convert the raw amounts to USD.
+    * Basically the question is: how do we compare liquidity amounts across pools? Possible solutions:
+        * Ignore this. Just treat liquidity the same across pools. 
+        * Before computing liquidity, convert the raw amounts to USD using the current price for each coin.
+        * Convert to USD using the price *at the time of the Mint*
 
 
 ### V2 SOMM Liquidity Details
