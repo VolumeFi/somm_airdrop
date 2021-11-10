@@ -19,7 +19,7 @@ class SOMMAppQueries:
         if dataset not in ['v2_mints_burns', 'v2_user_addresses',
                            'v3_mints_burns', 'v3_user_addresses']:
             raise ValueError()
-        file_path = [fp for fp in self.file_paths if dataset].pop()
+        file_path = [fp for fp in self.file_paths if dataset in fp].pop()
         return pd.read_csv(file_path, index_col=0)
 
 somm = SOMMAppQueries()
