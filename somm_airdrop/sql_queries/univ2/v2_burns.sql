@@ -20,7 +20,7 @@ SELECT
      ,logs.transaction_hash AS transaction_hash
      ,PARSE_BURN(logs.data, logs.topics).sender as sender_address
      ,PARSE_BURN(logs.data, logs.topics).amount0 AS amount0
-     ,PARSE_BURN(logs.data, logs.topics).amount1 AS Amount1
+     ,PARSE_BURN(logs.data, logs.topics).amount1 AS amount1
      ,address as pair
 FROM `bigquery-public-data.crypto_ethereum.logs` AS logs
          JOIN uniswap_v2_pairs AS pairs ON logs.address = pairs.pair
