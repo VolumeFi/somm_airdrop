@@ -48,7 +48,6 @@ jobs:
           # - file: "./src/sql_queries/10_all_earnings_hexadecimal.sql"
           # - file: "./src/sql_queries/11_sanity_checks.sql"
 
-
     steps:
       - uses: actions/checkout@v2
 
