@@ -34,11 +34,11 @@ jobs:
       max-parallel: 1
       matrix:
         schema:
-          - file: "./src/sql_queries/univ2/01_v2_pairs.sql"
-          - file: "./src/sql_queries/univ2/02_v2_burns_without_sender.sql"
-          - file: "./src/sql_queries/univ2/03_v2_mints_without_sender.sql"
-          - file: "./src/sql_queries/univ2/04_v2_burns.sql"
-          - file: "./src/sql_queries/univ2/05_v2_mints.sql"
+          - file: "./somm_airdrop/sql_queries/univ2/01_v2_pairs.sql"
+          - file: "./somm_airdrop/sql_queries/univ2/02_v2_burns_without_sender.sql"
+          - file: "./somm_airdrop/sql_queries/univ2/03_v2_mints_without_sender.sql"
+          - file: "./somm_airdrop/sql_queries/univ2/04_v2_burns.sql"
+          - file: "./somm_airdrop/sql_queries/univ2/05_v2_mints.sql"
 
 
     steps:
