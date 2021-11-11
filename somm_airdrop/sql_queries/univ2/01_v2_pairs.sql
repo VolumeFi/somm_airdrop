@@ -2,7 +2,7 @@ BEGIN
 
 CREATE TEMP FUNCTION
     PARSE_V2_CREATE_LOG(data STRING, topics ARRAY<STRING>)
-    RETURNS STRUCT<`pair` STRING>
+    RETURNS STRUCT<`pair` STRING, `token0` STRING, `token1` STRING>
     LANGUAGE js AS """
     const parsedEvent = {
         "anonymous": false,
