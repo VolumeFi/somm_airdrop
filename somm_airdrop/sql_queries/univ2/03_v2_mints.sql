@@ -13,7 +13,7 @@ CREATE TEMP FUNCTION
 
 
 
-CREATE TABLE uniswap_v2_mints_without_sender AS (
+CREATE TABLE uniswap_v2_mints AS (
 SELECT
     logs.block_timestamp AS block_timestamp
      ,logs.block_number AS block_number
@@ -21,10 +21,12 @@ SELECT
      ,PARSE_MINT(logs.data, logs.topics).amount0 AS amount0
      ,PARSE_MINT(logs.data, logs.topics).amount1 AS amount1
      ,address as pair
+     ,transactions.from_address
 FROM `bigquery-public-data.crypto_ethereum.logs` AS logs
          JOIN uniswap_v2_pairs AS pairs ON logs.address = pairs.pair
     --  Filter for only `Mint` events
     AND topics[SAFE_OFFSET(0)] = '0x4c209b5fc8ad50758f13e2e1088ba56a560dff690a1c6fef26394f4c03821c4f'
+    JOIN `bigquery-public-data.crypto_ethereum.transactions` AS transactions ON transactions.hash = logs.transaction_hash
 );
 
 -- END;
