@@ -3,7 +3,7 @@ BEGIN
 
 CREATE TEMP FUNCTION
     PARSE_MINT(data STRING, topics ARRAY<STRING>)
-    RETURNS STRUCT<`amount0` STRING, `amount1` STRING, `sender` STRING>
+    RETURNS STRUCT<`amount0` STRING, `amount1` STRING>
     LANGUAGE js AS """
     var parsedEvent = {"anonymous": false, "inputs": [{"indexed": false, "internalType": "uint112", "name": "amount0", "type": "uint112"}, {"indexed": false, "internalType": "uint112", "name": "amount1", "type": "uint112"}], "name": "Mint", "type": "event"}
     return abi.decodeEvent(parsedEvent, data, topics, false);
@@ -13,12 +13,11 @@ CREATE TEMP FUNCTION
 
 
 
-CREATE TABLE uniswap_v2_mints AS (
+CREATE TABLE uniswap_v2_mints_without_sender AS (
 SELECT
     logs.block_timestamp AS block_timestamp
      ,logs.block_number AS block_number
      ,logs.transaction_hash AS transaction_hash
-     ,PARSE_MINT(logs.data, logs.topics).sender as sender_address
      ,PARSE_MINT(logs.data, logs.topics).amount0 AS amount0
      ,PARSE_MINT(logs.data, logs.topics).amount1 AS amount1
      ,address as pair
