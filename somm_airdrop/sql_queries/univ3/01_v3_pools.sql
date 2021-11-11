@@ -20,18 +20,19 @@ CREATE TEMP FUNCTION
     OPTIONS
   ( library="https://storage.googleapis.com/ethlab-183014.appspot.com/ethjs-abi.js" );
 
-CREATE TABLE uniswap_v3_pairs
+CREATE TABLE uniswap_v3_pools
 AS
 (
     SELECT
         PARSE_V3_CREATE_LOG(logs.data, logs.topics).token0 AS token0,
         PARSE_V3_CREATE_LOG(logs.data, logs.topics).token1 AS token1,
-        PARSE_V3_CREATE_LOG(logs.data, logs.topics).pool AS pair
+        PARSE_V3_CREATE_LOG(logs.data, logs.topics).pool AS pool
     -- Below address is the Uniswap v3 factory address. These cna be found on 
     -- https://etherscan.io/address/0x1f98431c8ad98523631ae4a59f267346ea31f984
     FROM `bigquery-public-data.crypto_ethereum.logs` AS logs
     WHERE address = '0x1f98431c8ad98523631ae4a59f267346ea31f984'
-    -- AND topics[SAFE_OFFSET(0)] = '0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9'
+    -- Pool creation topic: can be found at Uniswap V3 factory / events
+    AND topics[SAFE_OFFSET(0)] = '0x783cca1c0412dd0d695e784568c96da2e9c22ff989357a2e8b1d9b2b4e6b7118'
 );
 
 -- END;
