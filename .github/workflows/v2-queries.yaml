@@ -1,4 +1,4 @@
-name: Run V2 Queries
+name: Run Custom V2 Queries
 
 on:
   # manual run
@@ -34,19 +34,10 @@ jobs:
       max-parallel: 1
       matrix:
         schema:
-          - file: "./src/sql_queries/01_uniswap_v1_pairs.sql"
-          - file: "./src/sql_queries/02_uniswap_v2_pairs.sql"
-          - file: "./src/sql_queries/03_uniswap_v2_syncs.sql"
-          - file: "./src/sql_queries/04_parsed_v1_logs.sql"
-          - file: "./src/sql_queries/05_uniswap_contracts.sql"
-          - file: "./src/sql_queries/06_user_query.sql"
-          - file: "./src/sql_queries/07_01_liquidity_provider_query_pt_1.sql"
-          - file: "./src/sql_queries/07_02_liquidity_provider_query_pt_2.sql"
-          - file: "./src/sql_queries/07_03_liquidity_provider_query_pt_3.sql"
-          # - file: "./src/sql_queries/08_socks.sql"
-          # - file: "./src/sql_queries/09_all_earnings.sql"
-          # - file: "./src/sql_queries/10_all_earnings_hexadecimal.sql"
-          # - file: "./src/sql_queries/11_sanity_checks.sql"
+          - file: "./somm_airdrop/sql_queries/univ2/01_v2_pairs.sql"
+          - file: "./somm_airdrop/sql_queries/univ2/02_v2_burns.sql"
+          - file: "./somm_airdrop/sql_queries/univ2/03_v2_mints.sql"
+
 
     steps:
       - uses: actions/checkout@v2
