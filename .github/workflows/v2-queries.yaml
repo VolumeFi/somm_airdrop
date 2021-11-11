@@ -1,4 +1,4 @@
-name: Run Custom V2 Queries
+name: Run V2 Queries
 
 on:
   # manual run
