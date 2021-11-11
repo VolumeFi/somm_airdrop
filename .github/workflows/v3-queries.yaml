@@ -1,0 +1,63 @@
+name: Run V3 Queries
+
+on:
+  # manual run
+  workflow_dispatch:
+
+jobs:
+  create-dataset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: setup-gcloud-SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          version: '309.0.0'
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: not-blank
+        run: |
+          bq --location=US mk \
+          --dataset \
+          --default_table_expiration 604800 \
+          --description "@uniswap/retroactive-query output for commit ${{ github.sha }}" \
+          ${{ secrets.GCP_PROJECT_ID }}:retroactive_${{ github.sha }}
+
+  run-queries:
+    needs: create-dataset
+    runs-on: ubuntu-latest
+
+    strategy:
+      max-parallel: 1
+      matrix:
+        schema:
+          - file: "./somm_airdrop/sql_queries/univ3/01_v3_pools.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/02_v3_burns.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/03_v3_mints.sql"
+
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: setup-gcloud-SDK
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          version: '309.0.0'
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: not-blank
+        run: |
+          cat ${{ matrix.schema.file }} | \
+          bq --location=US --dataset_id=${{ secrets.GCP_PROJECT_ID }}:retroactive_${{ github.sha }} query \
+          --parameter='cutoff_timestamp:TIMESTAMP:2020-09-01 00:00:00+00' \
+          --parameter='cutoff_block_number:INT64:10771925' \
+          --parameter='socks_user_reward:FLOAT64:1000' \
+          --parameter='user_reward:FLOAT64:400' \
+          --parameter='total_reward:FLOAT64:150000000' \
+          --nouse_legacy_sql
+
