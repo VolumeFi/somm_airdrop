@@ -34,9 +34,9 @@ jobs:
       max-parallel: 1
       matrix:
         schema:
-          - file: "./somm_airdrop/sql_queries/univ3/01_v3_pools.sql"
-          - file: "./somm_airdrop/sql_queries/univ3/02_v3_burns.sql"
-          - file: "./somm_airdrop/sql_queries/univ3/03_v3_mints.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_pools.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_burns.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_mints.sql"
 
 
     steps:
