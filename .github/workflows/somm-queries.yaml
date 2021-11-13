@@ -1,4 +1,4 @@
-name: Run V3 Queries
+name: Run SOMM Queries
 
 on:
   # manual run
