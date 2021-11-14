@@ -31,6 +31,7 @@ SELECT DISTINCT
      ,PARSE_BURN(logs.data, logs.topics).amount1 AS amount1
      ,PARSE_BURN(logs.data, logs.topics).liquidity AS liquidity
      ,pool_logs.address as pool
+     ,transactions.from_address AS from_address
      ,pools.token0
      ,pools.token1
 FROM `bigquery-public-data.crypto_ethereum.logs` AS logs
