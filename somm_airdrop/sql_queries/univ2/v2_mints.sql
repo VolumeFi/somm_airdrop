@@ -22,6 +22,8 @@ SELECT
      ,PARSE_MINT(logs.data, logs.topics).amount1 AS amount1
      ,address as pair
      ,transactions.from_address
+     ,pairs.token0
+     ,pairs.token1
 FROM `bigquery-public-data.crypto_ethereum.logs` AS logs
          JOIN uniswap_v2_pairs AS pairs ON logs.address = pairs.pair
     --  Filter for only `Mint` events
