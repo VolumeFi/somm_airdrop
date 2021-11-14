@@ -9,9 +9,10 @@ CREATE TEMP FUNCTION
     var parsedEvent = {
         "anonymous": false,
         "inputs": [
-            {"indexed": false, "internalType": "uint112", "name": "amount0", "type": "uint112"}, 
-            {"indexed": false, "internalType": "uint112", "name": "amount1", "type": "uint112"}, 
-            {"indexed": false, "internalType": "uint112", "name": "liquidity", "type": "uint112"}
+            {"indexed": true, "internalType": "uint256", "name": "", "type": "uint256"}, 
+            {"indexed": false, "internalType": "uint128", "name": "liquidity", "type": "uint128"},
+            {"indexed": false, "internalType": "uint256", "name": "amount0", "type": "uint256"}, 
+            {"indexed": false, "internalType": "uint256", "name": "amount1", "type": "uint256"}
         ],
         "name": "DecreaseLiquidity", "type": "event"
     }
