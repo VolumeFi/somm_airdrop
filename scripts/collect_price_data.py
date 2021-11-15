@@ -6,7 +6,7 @@ import json
 import __init__
 import somm_airdrop
 from datetime import datetime
-from typing import Callable, Dict, Optional, Set, List
+from typing import Dict, Optional, Set, List, Union
 
 
 # TODO Clean up the script
