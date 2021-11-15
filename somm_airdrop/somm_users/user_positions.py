@@ -5,11 +5,14 @@ import numpy as np
 
 def get_somm_v3_positions():
     somm_v3_mints: pd.DataFrame = pd.read_csv(
-        "../query_results/somm_v3_mints.csv").sort_values('block_timestamp', ignore_index=True)
+        "../query_results/somm_v3_mints.csv").sort_values(
+            'block_timestamp', ignore_index=True)
     somm_v3_burns: pd.DataFrame = pd.read_csv(
-        "../query_results/somm_v3_burns.csv").sort_values('block_timestamp', ignore_index=True)
+        "../query_results/somm_v3_burns.csv").sort_values(
+            'block_timestamp', ignore_index=True)
     v3_burns: pd.DataFrame = pd.read_csv(
-        "../query_results/uniswap_v3_burns.csv").sort_values('block_timestamp', ignore_index=True)
+        "../query_results/uniswap_v3_burns.csv").sort_values(
+            'block_timestamp', ignore_index=True)
 
     used_somm_v3_burns = []
     used_v3_burns = []
