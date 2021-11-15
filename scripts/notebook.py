@@ -21,7 +21,6 @@ def actions_table_exploration():
 import secret
 import messari
 from messari import timeseries
-messari.MESSARI_API_KEY = secret.MY_API_KEY
 
 def prices_test_query():
     assets = ['btc', 'eth']
