@@ -1,4 +1,4 @@
-name: Run UNI v3 Queries
+name: Run V3 Queries
 
 on:
   # manual run
@@ -34,17 +34,10 @@ jobs:
       max-parallel: 1
       matrix:
         schema:
-          - file: "./src/univ3/01_pairs.sql"
-          - file: "./src/univ3/03_syncs.sql"
-          - file: "./src/univ3/04_contracts.sql"
-          - file: "./src/univ3/06_users.sql"
-          # - file: "./src/07_01_liquidity_provider_query_pt_1.sql"
-          # - file: "./src/07_02_liquidity_provider_query_pt_2.sql"
-          # - file: "./src/07_03_liquidity_provider_query_pt_3.sql"
-          # - file: "./src/08_socks.sql"
-          # - file: "./src/09_all_earnings.sql"
-          # - file: "./src/10_all_earnings_hexadecimal.sql"
-          # - file: "./src/11_sanity_checks.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_pools.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_burns.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_mints.sql"
+
 
     steps:
       - uses: actions/checkout@v2

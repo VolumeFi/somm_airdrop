@@ -1,4 +1,4 @@
-name: Run Custom V2 Queries
+name: Run SOMM Queries
 
 on:
   # manual run
@@ -34,9 +34,12 @@ jobs:
       max-parallel: 1
       matrix:
         schema:
-          - file: "./src/sql_queries/univ2/v2_pairs.sql"
-          - file: "./src/sql_queries/univ2/v2_mints.sql"
-          - file: "./src/sql_queries/univ2/v2_burns.sql"
+          - file: "./somm_airdrop/sql_queries/univ2/v2_pairs.sql"
+          - file: "./somm_airdrop/sql_queries/somm/somm_v2_mints.sql"
+          - file: "./somm_airdrop/sql_queries/somm/somm_v2_burns.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_pools.sql"
+          - file: "./somm_airdrop/sql_queries/somm/somm_v3_mints.sql"
+          - file: "./somm_airdrop/sql_queries/somm/somm_v3_burns.sql"
 
 
     steps:
