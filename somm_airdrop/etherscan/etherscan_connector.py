@@ -1,6 +1,8 @@
 import requests
-from ratelimit import limits, sleep_and_retry
-from tenacity import retry, wait_exponential, stop_after_attempt
+import ratelimit
+import tenacity
+import logging
+import custom_secrets
 
 
 class EtherscanApiConnector(object):
@@ -22,12 +24,13 @@ class EtherscanApiConnector(object):
     BLOCK_NUMBER_BY_TIMESTAMP = etherscan_api + \
         "module=block&action=getblocknobytime&timestamp={timestamp}&closest=before&apikey={api_key}"
 
-    API_KEY = "FCD48UAF7G87XBTK3G934Q42MCV8PE3TVM"
+    API_KEY = custom_secrets.ETHERSCAN_API_KEY
 
     # ------------------------------------------------------------------------------------------------------------------
-    @retry(stop=stop_after_attempt(20), wait=wait_exponential(min=0.1, max=5, multiplier=2))
-    @sleep_and_retry
-    @limits(calls=30, period=1)  # 60-seconds
+    @tenacity.retry(stop=tenacity.stop_after_attempt(20), 
+                    wait=tenacity.wait_exponential(min=0.1, max=5, multiplier=2))
+    @ratelimit.sleep_and_retry
+    @ratelimit.limits(calls=30, period=1)  # 60-seconds
     def _execute_query(self, query):
         """
         Func is wrapped with some ultimate limiters to ensure this method is never callled too much.  However, the
