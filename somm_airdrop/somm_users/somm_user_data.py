@@ -22,9 +22,14 @@ class SOMMAppQueries:
         return pd.read_csv(file_path, index_col=0)
 
  
-def v2_mints_burns() -> pd.DataFrame:
+def v2_mints() -> pd.DataFrame:
     somm = SOMMAppQueries(dir_path="data")
-    return somm.load_csv(dataset="v2_mints_burns")
+    return somm.load_csv(dataset="somm_v2_mints")
+
+def v2_burns() -> pd.DataFrame:
+    somm = SOMMAppQueries(dir_path="data")
+    return somm.load_csv(dataset="somm_v2_burns")
+
 
 # User addresses now contained in mints_burns table.
 
