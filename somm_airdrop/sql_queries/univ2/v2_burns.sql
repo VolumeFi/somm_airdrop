@@ -5,7 +5,16 @@ CREATE TEMP FUNCTION
     PARSE_BURN(data STRING, topics ARRAY<STRING>)
     RETURNS STRUCT<`amount0` STRING, `amount1` STRING>
     LANGUAGE js AS """
-    var parsedEvent = {"anonymous": false, "inputs": [{"indexed": false, "internalType": "uint112", "name": "amount0", "type": "uint112"}, {"indexed": false, "internalType": "uint112", "name": "amount1", "type": "uint112"}], "name": "Burn", "type": "event"}
+    var parsedEvent = {
+        "anonymous": false, 
+        "inputs": [
+            {"indexed": true, "internalType": "address", "name": "sender", "type": "address"}, 
+            {"indexed": false, "internalType": "uint256", "name": "amount0", "type": "uint256"}, 
+            {"indexed": false, "internalType": "uint256", "name": "amount1", "type": "uint256"}, 
+            {"indexed": true, "internalType": "address", "name": "to", "type": "address"}, 
+        ],
+        "name": "Burn", "type": "event"
+    }
     return abi.decodeEvent(parsedEvent, data, topics, false);
 """
     OPTIONS

@@ -8,14 +8,18 @@ CREATE TEMP FUNCTION
     var parsedEvent = {
         "anonymous": false, 
         "inputs": [
+            {"indexed": true, "internalType": "address", "name": "sender", "type": "address"}, 
             {"indexed": false, "internalType": "uint256", "name": "amount0", "type": "uint256"}, 
             {"indexed": false, "internalType": "uint256", "name": "amount1", "type": "uint256"}, 
+            {"indexed": true, "internalType": "address", "name": "to", "type": "address"}, 
         ],
-        "name": "Burn", "type": "event"}
+        "name": "Burn", "type": "event"
+    }
     return abi.decodeEvent(parsedEvent, data, topics, false);
 """
     OPTIONS
   ( library="https://storage.googleapis.com/ethlab-183014.appspot.com/ethjs-abi.js" );
+
 
 
 
