@@ -1,6 +1,7 @@
 BEGIN
 -- Code for parsing Sync events from Uniswap v2
 
+
 CREATE TEMP FUNCTION
     PARSE_MINT(data STRING, topics ARRAY<STRING>)
     RETURNS STRUCT<`amount0` STRING, `amount1` STRING>
@@ -8,10 +9,12 @@ CREATE TEMP FUNCTION
     var parsedEvent = {
         "anonymous": false, 
         "inputs": [
+            {"indexed": true, "internalType": "address", "name": "sender", "type": "address"}, 
             {"indexed": false, "internalType": "uint256", "name": "amount0", "type": "uint256"}, 
             {"indexed": false, "internalType": "uint256", "name": "amount1", "type": "uint256"}, 
         ],
-        "name": "Mint", "type": "event"}
+        "name": "Mint", "type": "event"
+    }
     return abi.decodeEvent(parsedEvent, data, topics, false);
 """
     OPTIONS
