@@ -22,22 +22,28 @@ CREATE TEMP FUNCTION
 
 
 
-CREATE TABLE uniswap_v2_burns AS (
+
+CREATE TABLE somm_v2_burns AS (
 SELECT
     logs.block_timestamp AS block_timestamp
-     ,logs.block_number AS block_number
-     ,logs.transaction_hash AS transaction_hash
-     ,PARSE_BURN(logs.data, logs.topics).amount0 AS amount0
-     ,PARSE_BURN(logs.data, logs.topics).amount1 AS amount1
-     ,address as pair
-     ,transactions.from_address
-     ,pairs.token0
-     ,pairs.token1
+    ,logs.block_number AS block_number
+    ,logs.transaction_hash AS transaction_hash
+    ,PARSE_BURN(logs.data, logs.topics).amount0 AS amount0
+    ,PARSE_BURN(logs.data, logs.topics).amount1 AS amount1
+    ,logs.address as pair
+    ,transactions.from_address AS from_address
+    ,pairs.token0
+    ,pairs.token1
+    --  ,address as pair
 FROM `bigquery-public-data.crypto_ethereum.logs` AS logs
-         JOIN uniswap_v2_pairs AS pairs ON logs.address = pairs.pair
-    --  Filter for only `Burn` events
-    AND topics[SAFE_OFFSET(0)] = '0xdccd412f0b1252819cb1fd330b93224ca42612892bb3f4f789976e6d81936496'
-    JOIN `bigquery-public-data.crypto_ethereum.transactions` AS transactions ON transactions.hash = logs.transaction_hash
+    JOIN `bigquery-public-data.crypto_ethereum.transactions` AS transactions ON logs.transaction_hash=transactions.hash
+    JOIN uniswap_v2_pairs AS pairs on logs.address=pairs.pair
+    WHERE 
+        (transactions.to_address="0x418915329226ae7fccb20a2354bbbf0f6c22bd92"
+        OR transactions.to_address="0x430f33353490b256d2fd7bbd9dadf3bb7f905e78"
+        )
+    AND logs.topics[SAFE_OFFSET(0)] = '0xdccd412f0b1252819cb1fd330b93224ca42612892bb3f4f789976e6d81936496'
 );
+
 
 -- END;
