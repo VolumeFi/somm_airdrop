@@ -90,7 +90,7 @@ Let's assume you have the mints and burns. How should you
 """
 df: LPActionsTableV2
 
-def get_somm_users_lp_actions_v2(df: LPActionsTableV2) -> pd.DataFrame:
+def filter_v2_lp_actions_by_somm_users(df: LPActionsTableV2) -> pd.DataFrame:
     somm_users_v2: List[str] = somm_user_data.v2_user_addresses()
     somm_users_mask: List[bool] = [
         (user in somm_users_v2) for user in df['sender_addresses']]
@@ -103,7 +103,7 @@ def get_somm_users_lp_actions_v2(df: LPActionsTableV2) -> pd.DataFrame:
 class LPActionsTableV3:
     ...
 
-def get_somm_users_lp_actions_v3(df: LPActionsTableV3):
+def filter_v3_lp_actions_by_somm_users(df: LPActionsTableV3):
     somm_users_v3: List[str] = somm_user_data.v3_user_addresses()
     somm_users_mask: List[bool] = [
         (user in somm_users_v3) for user in df['sender_addresses']]
