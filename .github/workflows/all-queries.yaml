@@ -1,4 +1,4 @@
-name: Run V2 Queries
+name: Run All Queries (V2, V3, SOMM)
 
 on:
   # manual run
@@ -37,6 +37,13 @@ jobs:
           - file: "./somm_airdrop/sql_queries/univ2/v2_pairs.sql"
           - file: "./somm_airdrop/sql_queries/univ2/v2_mints.sql"
           - file: "./somm_airdrop/sql_queries/univ2/v2_burns.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_pools.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_mints.sql"
+          - file: "./somm_airdrop/sql_queries/univ3/v3_burns.sql"
+          - file: "./somm_airdrop/sql_queries/somm/somm_v2_mints.sql"
+          - file: "./somm_airdrop/sql_queries/somm/somm_v2_burns.sql"
+          - file: "./somm_airdrop/sql_queries/somm/somm_v3_mints.sql"
+          - file: "./somm_airdrop/sql_queries/somm/somm_v3_burns.sql"
 
 
     steps:
