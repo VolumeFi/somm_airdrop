@@ -71,7 +71,30 @@ def get_somm_v2_position():
     v2_burns: pd.DataFrame = pd.read_csv(
         "../query_results/uniswap_v2_burns.csv").sort_values('block_timestamp', ignore_index=True)
 
+    # Convert amount0/1 to int and compute liquidity
+    somm_v2_mints.amount0 = somm_v2_mints.amount0.apply(lambda x: int(x))
+    somm_v2_mints.amount1 = somm_v2_mints.amount1.apply(lambda x: int(x))
+    somm_v2_mints["liquidity"] = (somm_v2_mints.amount0 * somm_v2_mints.amount1).pow(1/2).apply(lambda x: int(x))
+
+    somm_v2_burns.amount0 = somm_v2_burns.amount0.apply(lambda x: int(x))
+    somm_v2_burns.amount1 = somm_v2_burns.amount1.apply(lambda x: int(x))
+    somm_v2_burns["liquidity"] = (somm_v2_burns.amount0 * somm_v2_burns.amount1).pow(1/2).apply(lambda x: int(x))
+
+    v2_burns.amount0 = v2_burns.amount0.apply(lambda x: int(x))
+    v2_burns.amount1 = v2_burns.amount1.apply(lambda x: int(x))
+    v2_burns["liquidity"] = (v2_burns.amount0 * v2_burns.amount1).pow(1/2).apply(lambda x: int(x))
+
+    breakpoint()
+
+    for idx, mint in tqdm(somm_v2_mints.iterrows(), total=somm_v2_mints.shape[0]):
+        relevant_burns = somm_v2_burns[
+            (somm_v2_burns["from_address"] == mint["from_address"]) &
+            (somm_v2_burns["pair"] == mint["pair"]) &
+            (somm_v2_burns['block_timestamp'] > mint['block_timestamp'])
+        ]
+        breakpoint()
+
 
 if __name__ == "__main__":
-    get_somm_v3_positions()
-    # get_somm_v2_position()
+    # get_somm_v3_positions()
+    get_somm_v2_position()
