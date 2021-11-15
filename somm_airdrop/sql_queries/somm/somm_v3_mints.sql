@@ -8,7 +8,7 @@ CREATE TEMP FUNCTION
     var parsedEvent = {
         "anonymous": false, 
         "inputs": [
-            {"indexed": true, "internalType": "address", "name": "tokenId", "type": "address"}, 
+            {"indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256"}, 
             {"indexed": true, "internalType": "address", "name": "token0", "type": "address"}, 
             {"indexed": true, "internalType": "address", "name": "token1", "type": "address"}, 
             {"indexed": false, "internalType": "uint256", "name": "liquidity", "type": "uint256"}, 
