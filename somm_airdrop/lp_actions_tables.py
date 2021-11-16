@@ -3,7 +3,7 @@ from typing import List
 import numpy as np
 import pandas as pd
 
-from somm_airdrop import somm_user_data
+from somm_airdrop.somm_users import somm_user_data
 
 """Notes / Objectives 
 A user maps to an address
