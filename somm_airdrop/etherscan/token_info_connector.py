@@ -28,7 +28,7 @@ class TokenInfoConnector(etherscan_connector.EtherscanConnector):
             f"&contractaddress={token_id}", f"&apikey={self.API_KEY}"])
 
     @ratelimit.limits(calls=2, period=1) 
-    def _execute_query(self, query: str):
+    def run_query(self, query: str):
         """Note, Etherscan restricts the token_info query to 2 calls per second.
         
         Args: 
@@ -37,11 +37,12 @@ class TokenInfoConnector(etherscan_connector.EtherscanConnector):
         Returns: 
             (dict): Component of the Requests.Response object
         """
-        return super()._execute_query(query=query)
+        return super().run_query(query=query)
     
     def get_token_info(self, 
                        token_ids: Union[str, List[str]], 
-                       save: bool = False) -> TokenInfoMap:
+                       save: bool = False, 
+                       verbose: bool = False) -> TokenInfoMap:
         """[summary]
 
         Args:
@@ -61,21 +62,27 @@ class TokenInfoConnector(etherscan_connector.EtherscanConnector):
         if isinstance(token_ids, str):
             token_ids = [token_ids]
 
-
         token_info_maps: TokenInfoMap = {}
-        for query_count, token_id in enumerate(token_ids):
 
+        for _, token_id in enumerate(token_ids):
+            # Make query.
             query = self._token_info_query_url(token_id=token_id)
-            response: List[Dict[str, str]] = self._execute_query(query=query)
+            response: List[Dict[str, str]] = self.run_query(query=query)
             if isinstance(response, str):
                 raise Exception(response)
 
-            token_info_map: TokenInfoMap = {token_id: response.pop()}
+            # Create token info map
+            token_info_map: TokenInfoMap = {token_id: response[0]}
             token_info_maps.update(token_info_map)
-            # if query_count % 2 == 1:   
-            #     time.sleep(secs=1) 
+
+            if _ % 2 == 1:
+                time.sleep(0.99) # Wait 1 second after 2 queries.
+
             if save:
-                self.save_token_info_json(token_info_maps=token_info_maps)
+                self.save_token_info_json(token_info_map=token_info_maps)
+            if verbose:
+                print(f"Token info gathered for {response[0]['symbol']}.")
+
         return token_info_maps
     
     def save_token_info_json(self, 
