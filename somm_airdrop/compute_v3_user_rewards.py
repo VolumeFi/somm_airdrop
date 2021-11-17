@@ -19,13 +19,15 @@ if __name__ == "__main__":
 
     user_token_rewards = {}
 
-    for pool in tqdm(v3_pool_info.AIRDROP_POOLS):
+    for pool_idx, pool in tqdm(enumerate(v3_pool_info.AIRDROP_POOLS), total=len(v3_pool_info.AIRDROP_POOLS)):
 
         pool_mints = v3_mints[v3_mints['pool'] == pool].copy()
         pool_burns = v3_burns[v3_burns['pool'] == pool].copy()
 
-        pool_mints.loc[:, "block_timestamp"] = pd.to_datetime(pool_mints.loc[:, "block_timestamp"])
-        pool_burns.loc[:, "block_timestamp"] = pd.to_datetime(pool_burns.loc[:, "block_timestamp"])
+        pool_mints.loc[:, "block_timestamp"] = pd.to_datetime(
+            pool_mints.loc[:, "block_timestamp"])
+        pool_burns.loc[:, "block_timestamp"] = pd.to_datetime(
+            pool_burns.loc[:, "block_timestamp"])
 
         used_pool_burns = []
         pool_v3_user_positions = {}
@@ -64,8 +66,6 @@ if __name__ == "__main__":
             else:
                 pool_v3_user_positions[mint['from_address']] = [position]
 
-        
-
         # Assign score to each position and sum across positions
         pool_user_score = {}
         for user_address, user_positions in tqdm(pool_v3_user_positions.items(), leave=False):
@@ -87,14 +87,18 @@ if __name__ == "__main__":
                 user_token_rewards[user_address] += user_pool_token_reward
             else:
                 user_token_rewards[user_address] = user_pool_token_reward
-        
-        rew_arr = np.asarray(list(user_token_rewards.values()))
-        max_rew = np.max(rew_arr)
-        max_address = plot_v3_pool_rewards.get_max_address(user_token_rewards)
-        print('max reward: ', max_rew)
-        if "0x2f591ddf47366c899bab6c9e73668898fbc47d75" in user_token_rewards:
-            print("BROH: ", user_token_rewards["0x2f591ddf47366c899bab6c9e73668898fbc47d75"])
-        breakpoint()
+
+    # Impose whale cap
+    total_redistribution_amount = 0
+    for user_address, user_reward in user_token_rewards.items():
+        if user_reward > 50000:
+            total_redistribution_amount += user_reward - 50000
+            user_token_rewards[user_address] = 50000
+
+    # Redistribute somm from whale cap uniformly
+    participation_reward = total_redistribution_amount/len(user_token_rewards)
+    for user_address, user_reward in user_token_rewards.items():
+        user_token_rewards[user_address] += participation_reward
 
     with open('v3_pool_rewards.json', 'w') as fp:
         json.dump(user_token_rewards, fp)
