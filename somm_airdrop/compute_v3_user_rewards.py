@@ -33,7 +33,6 @@ if __name__ == "__main__":
         pool_v3_user_positions = {}
 
         # Construct positions for each user
-        # TODO: Use October 31, 2021 as end_time
         for idx, mint in tqdm(pool_mints.iterrows(), total=pool_mints.shape[0], leave=False):
             # Ignore mints before the cutoff date
             if mint["block_timestamp"] >= pd.Timestamp("2021-10-31", tz="UTC"):
@@ -47,14 +46,11 @@ if __name__ == "__main__":
                 (pool_burns['block_timestamp'] > mint['block_timestamp'])
             ]
 
-            end_time = None
+            end_time = pd.Timestamp("2021-10-31", tz="UTC")
             if len(relevant_burns) > 0:
                 used_pool_burns.append(relevant_burns.index[0])
                 burn = relevant_burns.iloc[0]
                 end_time = burn['block_timestamp']
-
-            if end_time is None or end_time > pd.Timestamp("2021-10-31", tz="UTC"):
-                end_time = pd.Timestamp("2021-10-31", tz="UTC")
 
             position = {
                 "start": mint['block_timestamp'],
