@@ -12,7 +12,7 @@ AIRDROP_POOLS: List[str] = [
     '0x7379e81228514a1d2a6cf7559203998e20598346',
     '0x8c54aa2a32a779e6f6fbea568ad85a19e0109c26',
     '0xc63b0708e2f7e69cb8a1df0e1389a98c35a76d52',
-    '0xc2a856c3aff2110c1171b8f942256d40e980c726',
+    # '0xc2a856c3aff2110c1171b8f942256d40e980c726',
     '0x3b685307c8611afb2a9e83ebc8743dc20480716e',
     '0xa6cc3c2531fdaa6ae1a3ca84c2855806728693e8',
     '0x1d42064fc4beb5f8aaf85f4617ae8b3b5b8bd801',
@@ -35,7 +35,7 @@ POOL_TO_ADDRESS: Dict[str, str] = {
     "WETH_sETH2_0pt3": "0x7379e81228514a1d2a6cf7559203998e20598346",
     "FEI_USDC_0pt05": "0x8c54aa2a32a779e6f6fbea568ad85a19e0109c26",
     "FRAX_USDC_0pt05": "0xc63b0708e2f7e69cb8a1df0e1389a98c35a76d52",
-    "FRAX_USDT_0pt05": "0xc2a856c3aff2110c1171b8f942256d40e980c726",
+    # "FRAX_USDT_0pt05": "0xc2a856c3aff2110c1171b8f942256d40e980c726",
     "FTM_WETH_1pt": "0x3b685307c8611afb2a9e83ebc8743dc20480716e",
     "HEX_USDC_0pt3": "0x69d91b94f0aaf8e8a2586909fa77a5c2c89818d5", 
     "LINK_WETH_0pt3": "0xa6cc3c2531fdaa6ae1a3ca84c2855806728693e8",
@@ -54,3 +54,6 @@ POOL_TO_ADDRESS: Dict[str, str] = {
 
 ADDRESS_TO_POOL: Dict[str, str] = {v: k for k, v in POOL_TO_ADDRESS.items()}
 """Map from pool address to human-readable pool name""" 
+
+
+TOKEN_REWARD: int = 300000
