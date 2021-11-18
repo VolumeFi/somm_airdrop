@@ -147,8 +147,6 @@ def get_somm_v2_token_rewards():
         "../query_results/uniswap_v2_burns.csv").sort_values(
             'block_timestamp', ignore_index=True)
 
-    breakpoint()
-
     somm_v2_mints.loc[:, "block_timestamp"] = pd.to_datetime(
         somm_v2_mints.loc[:, "block_timestamp"], infer_datetime_format=True)
     somm_v2_burns.loc[:, "block_timestamp"] = pd.to_datetime(
@@ -182,8 +180,6 @@ def get_somm_v2_token_rewards():
 
     # Get positions on a pair-by-pair basis
     for pair_idx, pair_info in unique_pairs.iterrows():
-        used_somm_pair_burns = []
-        used_v2_pair_burns = []
         pair_v2_user_positions = {}
 
         somm_pair_mints = somm_v2_mints[somm_v2_mints["pair"]
@@ -196,6 +192,7 @@ def get_somm_v2_token_rewards():
         somm_pair_users = somm_pair_mints["from_address"].drop_duplicates()
         # Construct positions for each user (for each pair)
         for user_address in somm_pair_users:
+            pair_v2_user_positions[user_address] = []
             somm_pair_user_mints = somm_pair_mints[somm_pair_mints["from_address"] == user_address].copy(
             )
             somm_pair_user_burns = somm_pair_burns[somm_pair_burns["from_address"] == user_address].copy(
@@ -213,10 +210,42 @@ def get_somm_v2_token_rewards():
             # Stack relevant mints & burns
             user_pair_mints_burns = pd.concat((somm_pair_user_mints, somm_pair_user_burns, v2_pair_user_burns)).sort_values(
                 'block_timestamp', ignore_index=True).drop_duplicates().reset_index(drop=True)
-            
+
             # Recall that for V2 burns don't have to directly match mints
             #   Each mint/burn will mark the end/beginning of a new "position"
-            breakpoint()
+            for idx, mint_burn in user_pair_mints_burns.iterrows():
+
+                if len(pair_v2_user_positions[user_address]) == 0 or pair_v2_user_positions[user_address][-1]["end"] is not None:
+                    # First position must start with a mint
+                    if mint_burn["liquidity"] <= 0:
+                        continue
+
+                    new_position = {
+                        "start": mint_burn["block_timestamp"],
+                        "end": None,
+                        "amount": mint_burn["liquidity"]
+                    }
+                    pair_v2_user_positions[user_address].append(new_position)
+
+                else:
+                    prev_position = pair_v2_user_positions[user_address][-1]
+                    # Check if last position needs to be filled in and close it
+                    if prev_position["end"] is None:
+                        prev_position["end"] = mint_burn["block_timestamp"]
+
+                    # If there's >0 liquidity left, treat it as a new position
+                    if (prev_position["amount"] + mint_burn["liquidity"]) > 0:
+                        new_position = {
+                            "start": mint_burn['block_timestamp'],
+                            "end": None,
+                            "amount": prev_position["amount"] + mint_burn["liquidity"]
+                        }
+                        pair_v2_user_positions[user_address].append(
+                            new_position)
+
+            if pair_v2_user_positions[user_address][-1]["end"] is None:
+                pair_v2_user_positions[user_address][-1]["end"] = pd.Timestamp(
+                    "2021-10-31", tz="UTC")
 
 
 if __name__ == "__main__":
