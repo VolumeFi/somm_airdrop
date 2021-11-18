@@ -62,7 +62,6 @@ class EtherscanConnector:
                 msg = f"Failed request with status code {response.status_code}:  {response.text}"
                 logging.warning(msg)
                 raise Exception(msg)
-
         except Exception:
             logging.exception(f"Problem in query: {query}")
             # Raise so retry can retry
