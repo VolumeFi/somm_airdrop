@@ -147,6 +147,8 @@ def get_somm_v2_token_rewards():
         "../query_results/uniswap_v2_burns.csv").sort_values(
             'block_timestamp', ignore_index=True)
 
+    breakpoint()
+
     somm_v2_mints.loc[:, "block_timestamp"] = pd.to_datetime(
         somm_v2_mints.loc[:, "block_timestamp"], infer_datetime_format=True)
     somm_v2_burns.loc[:, "block_timestamp"] = pd.to_datetime(
@@ -158,19 +160,27 @@ def get_somm_v2_token_rewards():
 
     # Only keep burns that are for the relevant pairs
     v2_burns = v2_burns[v2_burns["pair"].isin(
-        unique_pairs["pair"])].reset_index()
+        unique_pairs["pair"])].reset_index(drop=True)
     v2_burns.loc[:, "block_timestamp"] = pd.to_datetime(
         v2_burns.loc[:, "block_timestamp"], infer_datetime_format=True)
 
+    # Convert amount0/1 to type int and create liquidity column
     somm_v2_mints.amount0 = somm_v2_mints.amount0.apply(lambda x: int(x))
     somm_v2_mints.amount1 = somm_v2_mints.amount1.apply(lambda x: int(x))
+    somm_v2_mints["liquidity"] = (
+        somm_v2_mints.amount0 * somm_v2_mints.amount1).apply(lambda x: math.isqrt(x))
 
     somm_v2_burns.amount0 = somm_v2_burns.amount0.apply(lambda x: int(x))
     somm_v2_burns.amount1 = somm_v2_burns.amount1.apply(lambda x: int(x))
+    somm_v2_burns["liquidity"] = (
+        somm_v2_burns.amount0 * somm_v2_burns.amount1).apply(lambda x: math.isqrt(x))
 
     v2_burns.amount0 = v2_burns.amount0.apply(lambda x: int(x))
     v2_burns.amount1 = v2_burns.amount1.apply(lambda x: int(x))
+    v2_burns["liquidity"] = (
+        v2_burns.amount0 * v2_burns.amount1).apply(lambda x: math.isqrt(x))
 
+    # Get positions on a pair-by-pair basis
     for pair_idx, pair_info in unique_pairs.iterrows():
         used_somm_pair_burns = []
         used_v2_pair_burns = []
@@ -182,13 +192,36 @@ def get_somm_v2_token_rewards():
                                         == pair_info["pair"]].copy()
         v2_pair_burns = v2_burns[v2_burns["pair"] == pair_info["pair"]].copy()
 
-        for idx, mint in tqdm(somm_pair_mints.iterrows(), total=somm_pair_mints.shape[0], leave=False):
+        # Get unique users for given pool
+        somm_pair_users = somm_pair_mints["from_address"].drop_duplicates()
+        # Construct positions for each user (for each pair)
+        for user_address in somm_pair_users:
+            somm_pair_user_mints = somm_pair_mints[somm_pair_mints["from_address"] == user_address].copy(
+            )
+            somm_pair_user_burns = somm_pair_burns[somm_pair_burns["from_address"] == user_address].copy(
+            )
+            v2_pair_user_burns = v2_pair_burns[v2_pair_burns["from_address"]
+                                               == user_address].copy()
+
+            # TODO: At this stage we can convert token amounts to USD
+            # Multiply burn liquidity by -1
+            somm_pair_user_burns.loc[:, "liquidity"] = somm_pair_user_burns["liquidity"].apply(
+                lambda x: -x)
+            v2_pair_user_burns.loc[:, "liquidity"] = v2_pair_user_burns["liquidity"].apply(
+                lambda x: -x)
+
+            # Stack relevant mints & burns
+            user_pair_mints_burns = pd.concat((somm_pair_user_mints, somm_pair_user_burns, v2_pair_user_burns)).sort_values(
+                'block_timestamp', ignore_index=True).drop_duplicates().reset_index(drop=True)
+            
+            # Recall that for V2 burns don't have to directly match mints
+            #   Each mint/burn will mark the end/beginning of a new "position"
             breakpoint()
 
 
 if __name__ == "__main__":
 
-    v3_user_token_rewards = get_somm_v3_token_rewards()
+    # v3_user_token_rewards = get_somm_v3_token_rewards()
     v2_user_token_rewards = get_somm_v2_token_rewards()
 
     """
