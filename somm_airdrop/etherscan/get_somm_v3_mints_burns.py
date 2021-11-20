@@ -4,7 +4,7 @@ from decoding_utils import decode_log
 import json
 import pandas as pd
 from tqdm import tqdm
-from etherscan_connector import EtherscanApiConnector
+from etherscan_connector import EtherscanConnector
 import datetime
 
 api_rate_limit_message = "Max rate limit reached"
@@ -62,7 +62,7 @@ MINT_BURN_TOPICS = {
 
 
 if __name__ == "__main__":
-    etherscan_conn = EtherscanApiConnector()
+    etherscan_conn = EtherscanConnector()
 
     mints_burns_dict = []
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
                 event_dict['liquidity'] *= -1
             
             event_tx_receipt = etherscan_conn.get_tx_receipt(
-                transaction_string=event['transactionHash'])
+                tx_hash=event['transactionHash'])
             event_dict['somm_user_address'] = event_tx_receipt['from']
 
             # Use transaction logs to get pool address

@@ -25,11 +25,7 @@ class EtherscanConnector:
         "module=block&action=getblocknobytime&timestamp={timestamp}&closest=before&apikey={api_key}"
 
 
-    @tenacity.retry(stop=tenacity.stop_after_attempt(20), 
-                    wait=tenacity.wait_exponential(min=0.1, max=5, multiplier=2))
-    @ratelimit.sleep_and_retry
-    @ratelimit.limits(calls=30, period=1)  # period (float) is in seconds.
-    def _execute_query(self, query):
+    def run_query(self, query, rate_limit: bool = False) -> requests.Response:
         """Func is wrapped with some ultimate limiters to ensure this method is 
         never callled too much.  However, the batch-call function should also 
         limit itself, since it is likely to have a higher-level awareness (at 
@@ -40,17 +36,32 @@ class EtherscanConnector:
         :return: dict component of the Requests.Response object
         :rtype dict
         """
-        # ToDo: Parse response to see if the rate-limit has been hit
+        response: requests.Response
+        if rate_limit:
+            response = self._run_query_with_rate_limit(query=query)
+        else:
+            response = self._run_base_query(query=query)
+        return response
+
+
+    @tenacity.retry(stop=tenacity.stop_after_attempt(20), 
+                    wait=tenacity.wait_exponential(min=0.1, max=5, multiplier=2))
+    @ratelimit.sleep_and_retry
+    @ratelimit.limits(calls=30, period=1)  # period (float) is in seconds.
+    def _run_query_with_rate_limit(self, query: str) -> requests.Response:
+        return self._run_base_query(query=query)
+
+    def _run_base_query(self, query: str) -> requests.Response:
+        # TODO: Parse response to see if the rate-limit has been hit
         headers = {'Content-Type': 'application/json'}
         try:
-            response = requests.get(query, headers=headers)
+            response: requests.Response = requests.get(query, headers=headers)
             if response and response.ok:
                 return response.json()['result']
             else:
                 msg = f"Failed request with status code {response.status_code}:  {response.text}"
                 logging.warning(msg)
                 raise Exception(msg)
-
         except Exception:
             logging.exception(f"Problem in query: {query}")
             # Raise so retry can retry
@@ -64,24 +75,24 @@ class EtherscanConnector:
 
         query = TRANSACTION_RECEIPT_URL.format(
             transaction_hash=tx_hash, api_key=self.API_KEY)
-        tx_receipt = self._execute_query(query)
+        tx_receipt = self.run_query(query)
         return tx_receipt
 
     def get_event_log(self, address: str, topic0: str):
         query = self.EVENT_LOG_URL.format(
             address=address, topic0=topic0, api_key=self.API_KEY)
-        return self._execute_query(query)
+        return self.run_query(query)
     
     def get_normal_transactions(self, address: str):
         query = self.TRANSACTION_LIST_URL.format(address=address, api_key=self.API_KEY)
-        return self._execute_query(query)
+        return self.run_query(query)
 
     
     def get_contract_abi(self, address: str):
         query = self.CONTRACT_ABI_URL.format(address=address, api_key=self.API_KEY)
-        return self._execute_query(query)
+        return self.run_query(query)
     
     def get_block_number_before_timestamp(self, timestamp: int):
         query = self.BLOCK_NUMBER_BY_TIMESTAMP.format(timestamp=timestamp, api_key=self.API_KEY)
-        return self._execute_query(query)
+        return self.run_query(query)
 

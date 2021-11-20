@@ -16,7 +16,7 @@ class SOMMAppQueries:
     
     def load_csv(self, dataset: str) -> pd.DataFrame:
         if dataset not in ['somm_v2_burns', 'somm_v2_mints',
-                           ]:
+                           'somm_v3_burns', 'somm_v3_mints']:
             raise ValueError()
         file_path = [fp for fp in self.file_paths if dataset in fp].pop()
         return pd.read_csv(file_path, index_col=0)
@@ -29,6 +29,15 @@ def v2_mints() -> pd.DataFrame:
 def v2_burns() -> pd.DataFrame:
     somm = SOMMAppQueries(dir_path="data")
     return somm.load_csv(dataset="somm_v2_burns")
+
+def v3_mints() -> pd.DataFrame:
+    somm = SOMMAppQueries(dir_path="data")
+    return somm.load_csv(dataset="somm_v3_mints")
+
+def v3_burns() -> pd.DataFrame:
+    somm = SOMMAppQueries(dir_path="data")
+    return somm.load_csv(dataset="somm_v3_burns")
+
 
 
 # User addresses now contained in mints_burns table.
