@@ -1,4 +1,9 @@
-from typing import Any, Dict, List, Union
+"""Coin Market Cap API wrapper.
+
+Classes:
+    CoinMarketCapAPI
+    CoinMarketCapEndpoint
+"""
 import requests
 from requests import exceptions
 import ratelimit
@@ -7,11 +12,12 @@ import os
 import json
 import tenacity
 import logging
+from typing import Any, Dict, List, Optional, Sequence, Union
 
 from somm_airdrop import custom_secrets
 # https://pro-api.coinmarketcap.com/v1/cryptocurrency/map
 
-class CoinMarketCapConnector:
+class CoinMarketCapAPI:
     """Python connector the Coin Market Cap API.
 
     Attributes:
@@ -34,16 +40,20 @@ class CoinMarketCapConnector:
         Returns: 
             (dict): Component of the Requests.Response object
         """
+
         headers = {
-            'Accepts': 'application/json', 
-            'X-CMC_PRO_API_KEY': self.API_KEY}
+            "Accepts": "application/json", 
+            "Accept-Encoding": "deflate, gzip",
+            "X-CMC_PRO_API_KEY": self.API_KEY}
+
         session = requests.Session()
         session.headers.update(headers)
+
         try:
             response: requests.Response = session.get(
                 endpoint, headers=headers, params=params)
             if response and response.ok:
-                return response.json()['result']
+                return response.json()
             else:
                 msg = (f"Failed request with status code {response.status_code}"
                        + f": {response.text}")
@@ -60,67 +70,65 @@ class CoinMarketCapConnector:
             logging.exception(f"Exception raised: {e}")
             raise # Raise so retry can retry
     
-    def foo(self, ) -> str:
-
-        ...
-
-    # -----------------------------------------------   
-    # TODO
-    # -----------------------------------------------   
-
-    def _currency_map_query_url(self, token_id: str) -> str:
-        # TODO needs refactor.
-        return "".join([
-            self.endpoint_preamble, "module=token", "&action=tokeninfo",
-            f"&contractaddress={token_id}", f"&apikey={self.API_KEY}"])
-
-    def get_token_info(self, 
-                       token_ids: Union[str, List[str]], 
-                       save: bool = False, 
-                       verbose: bool = False) -> TokenInfoMap:
-        """[summary]
-
-        Args:
-            token_ids (Union[str, List[str]]): A token address or list of token
-                addresses.
-            save (bool): Saves the queried token info to json. 
-                Defaults to False.
-
-        Raises:
-            ValueError: If 'token_ids' is not a string or list.
-
-        Returns:
-            token_info_maps (TokenInfoMap): Dict[TokenID, TokenInfo]
+    def cmc_id_map(self, 
+                   symbols: Union[str, Sequence[str]], 
+                   save: bool = False) -> List[dict]:
         """
-        if not isinstance(token_ids, (str, list)):
-            raise ValueError()
-        if isinstance(token_ids, str):
-            token_ids = [token_ids]
+        Docs: https://coinmarketcap.com/api/documentation/v1/#operation/getV1CryptocurrencyMap 
+        """
+        endpoint: str = CoinMarketCapEndpoint(
+            category="cryptocurrency", path="map")
+        if isinstance(symbols, str):
+            symbols = [symbols]
+        assert isinstance(symbols, list)
 
-        token_info_maps: TokenInfoMap = {}
+        # Query expects a comma-separated list of cryptocurrency symbols.
+        excluded_symbols = ['EWTB']
 
-        for _, token_id in enumerate(token_ids):
-            # Make query.
-            query = self._token_info_query_url(token_id=token_id)
-            response: List[Dict[str, str]] = self.run_query(query=query)
-            if isinstance(response, str):
-                raise Exception(response)
+        if symbols != ["all"]:    
+            symbols: str = ",".join(symbols)
+            symbols = symbols.replace("EWTB", "EWT")
+            params: Dict[str, str] = dict(symbol=symbols)
+        else:
+            params = {}
 
-            # Create token info map
-            token_info_map: TokenInfoMap = {token_id: response[0]}
-            token_info_maps.update(token_info_map)
+        cmc_id_maps: List[dict] = self.run_query(
+            endpoint=endpoint, params=params)["data"]
 
-            if _ % 2 == 1:
-                time.sleep(0.99) # Wait 1 second after 2 queries.
+        if save: 
+            self._save_cmc_id_maps(cmc_id_maps=cmc_id_maps)
 
-            if save:
-                self.save_token_info_json(token_info_map=token_info_maps)
-            if verbose:
-                print(f"Token info gathered for {response[0]['symbol']}.")
+        breakpoint()
+        return cmc_id_maps
+    
+    def _save_cmc_id_maps(self, 
+                          cmc_id_maps: List[dict], 
+                          filename: Optional[str] = None) -> None:
+        cmc_id_maps: List[dict] = sorted(
+            cmc_id_maps, key=lambda dict_: dict_["id"])
 
-        return token_info_maps
+        if filename is None:
+            filename = "cmc_id_maps.json"
+        if filename[-5:] != ".json":
+            raise ValueError(f"Filename: {filename} must end in '.json'.")
+        
+        save_path: str = os.path.join("data", filename)
 
-class CoinMarketCapEndpoint: 
+        if os.path.exists(save_path):
+            with open(file=save_path, mode="r") as f:
+                current_cmc_id_maps = json.load(f)
+                if current_cmc_id_maps is None:
+                    current_cmc_id_maps = {}
+            for map_ in current_cmc_id_maps:
+                if map_ not in cmc_id_maps:
+                    cmc_id_maps.append(map_)
+        cmc_id_maps_json: List[dict] = cmc_id_maps
+        
+        with open(save_path, "w") as f:
+            json.dump(cmc_id_maps_json, f, indent=3)
+
+
+class CoinMarketCapEndpoint(str): 
     """
     Args & Attributes: 
         category (str): CMC endpoint category.
@@ -155,17 +163,17 @@ class CoinMarketCapEndpoint:
         "cryptocurrency", "exchange", "global-metrics", "tools", "blockchain", 
         "fiat", "partners", "key"]
     endpoint_paths: List[str] = ["latest", "historical", "info", "map"]
+    preamble_v1: str = "https://pro-api.coinmarketcap.com/v1"
 
-    def __init__(self, category: str, path: str):
-        if category not in self.endpoint_categories:
+    def __new__(cls, category: str, path: str) -> str:
+        if category not in cls.endpoint_categories:
             raise ValueError("") # TODO
-        if path not in self.endpoint_paths:
+        if path not in cls.endpoint_paths:
             raise ValueError("") # TODO
-        self.category = category
-        self.path = path
-    
-    def get(self) -> str:
-        ...
+
+        url_components = [cls.preamble_v1, category, path]
+        url = "/".join(url_components)
+        return url
     
     
         
