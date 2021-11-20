@@ -12,10 +12,21 @@ if __name__ == "__main__":
     v3_mints: pd.DataFrame = pd.read_csv(
         "../query_results/uniswap_v3_mints.csv",
     ).sort_values('block_timestamp', ignore_index=True)
-
     v3_burns: pd.DataFrame = pd.read_csv(
         "../query_results/uniswap_v3_burns.csv",
     ).sort_values('block_timestamp', ignore_index=True)
+
+    # Convert block_timestamp to datetime
+    v3_mints.loc[:, "block_timestamp"] = pd.to_datetime(
+        v3_mints.loc[:, "block_timestamp"], infer_datetime_format=True)
+    v3_burns.loc[:, "block_timestamp"] = pd.to_datetime(
+        v3_burns.loc[:, "block_timestamp"], infer_datetime_format=True)
+
+    # Remove mints/burns after Oct 31
+    v3_mints = v3_mints[v3_mints["block_timestamp"]
+                        < pd.Timestamp("2021-10-31", tz="UTC")]
+    v3_burns = v3_burns[v3_burns["block_timestamp"]
+                        < pd.Timestamp("2021-10-31", tz="UTC")]
 
     user_token_rewards = {}
 
@@ -24,20 +35,12 @@ if __name__ == "__main__":
         pool_mints = v3_mints[v3_mints['pool'] == pool].copy()
         pool_burns = v3_burns[v3_burns['pool'] == pool].copy()
 
-        pool_mints.loc[:, "block_timestamp"] = pd.to_datetime(
-            pool_mints.loc[:, "block_timestamp"])
-        pool_burns.loc[:, "block_timestamp"] = pd.to_datetime(
-            pool_burns.loc[:, "block_timestamp"])
-
         used_pool_burns = []
         pool_v3_user_positions = {}
 
-        # Construct positions for each user
-        # TODO: Use October 31, 2021 as end_time
+        # Construct positions for each use  r
         for idx, mint in tqdm(pool_mints.iterrows(), total=pool_mints.shape[0], leave=False):
             # Ignore mints before the cutoff date
-            if mint["block_timestamp"] >= pd.Timestamp("2021-10-31", tz="UTC"):
-                continue
 
             relevant_burns = pool_burns[
                 (pool_burns['liquidity'] == mint['liquidity']) &
@@ -47,14 +50,11 @@ if __name__ == "__main__":
                 (pool_burns['block_timestamp'] > mint['block_timestamp'])
             ]
 
-            end_time = None
+            end_time = pd.Timestamp("2021-10-31", tz="UTC")
             if len(relevant_burns) > 0:
                 used_pool_burns.append(relevant_burns.index[0])
                 burn = relevant_burns.iloc[0]
                 end_time = burn['block_timestamp']
-
-            if end_time is None or end_time > pd.Timestamp("2021-10-31", tz="UTC"):
-                end_time = pd.Timestamp("2021-10-31", tz="UTC")
 
             position = {
                 "start": mint['block_timestamp'],
