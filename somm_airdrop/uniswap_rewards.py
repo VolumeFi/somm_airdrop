@@ -4,16 +4,15 @@ import numpy as np
 import v3_pool_info
 import math
 import json
-from plotting_utils import plot_v3_pool_rewards
 from matplotlib import pyplot as plt
 
 
 if __name__ == "__main__":
     v3_mints: pd.DataFrame = pd.read_csv(
-        "../query_results/uniswap_v3_mints.csv",
+        "../data/uniswap_v3_mints.csv",
     ).sort_values('block_timestamp', ignore_index=True)
     v3_burns: pd.DataFrame = pd.read_csv(
-        "../query_results/uniswap_v3_burns.csv",
+        "../data/uniswap_v3_burns.csv",
     ).sort_values('block_timestamp', ignore_index=True)
 
     # Convert block_timestamp to datetime

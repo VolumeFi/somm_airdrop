@@ -6,7 +6,7 @@ from decoding_utils import decode_log
 import json
 import pandas as pd
 from tqdm import tqdm
-from etherscan_connector import EtherscanApiConnector
+from somm_airdrop.etherscan.etherscan_connector import EtherscanConnector
 import math
 import datetime
 
@@ -50,7 +50,7 @@ SOMM_V2_CONTRACTS = [
 
 
 if __name__ == "__main__":
-    etherscan_conn = EtherscanApiConnector()
+    etherscan_conn = EtherscanConnector()
 
     mints_burns_dict = []
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         normal_txs = etherscan_conn.get_normal_transactions(somm_contract_dict["address"])
         for tx_dict in tqdm(normal_txs):
             tx_hash = tx_dict['hash']
-            tx_receipt = etherscan_conn.get_tx_receipt(transaction_string=tx_hash)
+            tx_receipt = etherscan_conn.get_tx_receipt(tx_hash=tx_hash)
             all_tx_logs = tx_receipt['logs']
             if len(all_tx_logs) > 0:
                 # Select log with topic0

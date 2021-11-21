@@ -3,7 +3,7 @@ __pycache__/
 .vscode/
 
 secret/
+data/
 
 */uni_v2_positions/data/*
 **/uni_v2_positions/data/**
-query_results/
