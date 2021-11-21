@@ -67,13 +67,13 @@ def get_somm_v3_scores():
 
     # v3 unique pools + tokenIds
     somm_v3_mints: pd.DataFrame = pd.read_csv(
-        "../query_results/somm_v3_mints.csv").sort_values(
+        "../data/somm_v3_mints.csv").sort_values(
             'block_timestamp', ignore_index=True)
     somm_v3_burns: pd.DataFrame = pd.read_csv(
-        "../query_results/somm_v3_burns.csv").sort_values(
+        "../data/somm_v3_burns.csv").sort_values(
             'block_timestamp', ignore_index=True)
     v3_burns: pd.DataFrame = pd.read_csv(
-        "../query_results/uniswap_v3_burns.csv").sort_values(
+        "../data/uniswap_v3_burns.csv").sort_values(
             'block_timestamp', ignore_index=True)
 
     somm_v3_mints.loc[:, "block_timestamp"] = pd.to_datetime(
@@ -184,16 +184,16 @@ class TokenScoresSOMMV2:
         self._scores = self.get_scores(wallet_to_positions)
         return self._scores
 
-    def _load_data(self, data_dir: str = "query_results") -> None:
+    def _load_data(self, data_dir: str = "data") -> None:
 
         somm_v2_mints: pd.DataFrame = pd.read_csv(
-            "../query_results/somm_v2_mints.csv").sort_values(
+            "../data/somm_v2_mints.csv").sort_values(
                 'block_timestamp', ignore_index=True)
         somm_v2_burns: pd.DataFrame = pd.read_csv(
-            "../query_results/somm_v2_burns.csv").sort_values(
+            "../data/somm_v2_burns.csv").sort_values(
                 'block_timestamp', ignore_index=True)
         v2_burns: pd.DataFrame = pd.read_csv(
-            "../query_results/uniswap_v2_burns.csv").sort_values(
+            "../data/uniswap_v2_burns.csv").sort_values(
                 'block_timestamp', ignore_index=True)
 
         somm_v2_mints.loc[:, "block_timestamp"] = pd.to_datetime(

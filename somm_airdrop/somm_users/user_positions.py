@@ -5,13 +5,13 @@ import numpy as np
 
 def get_somm_v3_positions():
     somm_v3_mints: pd.DataFrame = pd.read_csv(
-        "../query_results/somm_v3_mints.csv").sort_values(
+        "../data/somm_v3_mints.csv").sort_values(
             'block_timestamp', ignore_index=True)
     somm_v3_burns: pd.DataFrame = pd.read_csv(
-        "../query_results/somm_v3_burns.csv").sort_values(
+        "../data/somm_v3_burns.csv").sort_values(
             'block_timestamp', ignore_index=True)
     v3_burns: pd.DataFrame = pd.read_csv(
-        "../query_results/uniswap_v3_burns.csv").sort_values(
+        "../data/uniswap_v3_burns.csv").sort_values(
             'block_timestamp', ignore_index=True)
 
     used_somm_v3_burns = []
@@ -68,11 +68,11 @@ def get_somm_v3_positions():
 
 def get_somm_v2_position():
     somm_v2_mints: pd.DataFrame = pd.read_csv(
-        "../query_results/somm_v2_mints.csv").sort_values('block_timestamp', ignore_index=True)
+        "../data/somm_v2_mints.csv").sort_values('block_timestamp', ignore_index=True)
     somm_v2_burns: pd.DataFrame = pd.read_csv(
-        "../query_results/somm_v2_burns.csv").sort_values('block_timestamp', ignore_index=True)
+        "../data/somm_v2_burns.csv").sort_values('block_timestamp', ignore_index=True)
     v2_burns: pd.DataFrame = pd.read_csv(
-        "../query_results/uniswap_v2_burns.csv").sort_values('block_timestamp', ignore_index=True)
+        "../data/uniswap_v2_burns.csv").sort_values('block_timestamp', ignore_index=True)
 
     # Convert amount0/1 to int and compute liquidity
     somm_v2_mints.amount0 = somm_v2_mints.amount0.apply(lambda x: int(x))
