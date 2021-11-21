@@ -4,7 +4,9 @@ import collections
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from typing import Dict, List, Mapping, Sequence
+from typing import Dict, List, Mapping, Sequence, Union
+import json
+import time
 
 LIQ_DURATION_REWARD = 2000000
 PARTICIPATION_REWARD = 3200000
@@ -13,8 +15,28 @@ PARTICIPATION_REWARD = 3200000
 PairID = str
 Wallet = str
 
+
+def token_to_usd(token_id: str,
+                 token_amt: float,
+                 ) -> float:
+    """Args:
+        token_id (str): Contract address for the token.
+        token_amt (float): Amount of the token.
+
+    Returns:
+        (float): Value of 'token_amt' at the USD price of the token."""
+
+    token_info_path: str = os.path.join("../data", "token_info.json")
+    with open(token_info_path, mode="r") as f:
+        token_info_maps: Dict[str, dict] = json.load(f)
+    token_price_usd: float = float(token_info_maps[token_id]["tokenPriceUSD"])
+    divisor = int(token_info_maps[token_id]['divisor'])
+    decimal_adj = math.pow(10, -divisor)
+    return token_price_usd * token_amt * decimal_adj
+
+
 def get_position_amount_usd(
-    token0: str, token1: str, amount0: int, amount1: int, mint_ts: pd.Timestamp):
+        token0: str, token1: str, amount0: int, amount1: int):
     """[summary]
 
     Args:
@@ -22,15 +44,16 @@ def get_position_amount_usd(
         token1 (str): Contract address for token 1.
         amount0 (int): Amount of token 0 in the liquidity position.
         amount1 (int): Amount of token 1 in the liquidity position.
-        mint_ts (pd.Timestamp): Time that the position was minted.
 
     Returns:
         (float): Value of the liquidity position in USD.
     """
 
-    # return token_to_usd(token_id=token0, token_amount=amount0, ts=mint_ts)
-    #        + token_to_usd(token_id=token1, token_amount=amount1, ts=mint_ts)
+    return token_to_usd(token_id=token0, token_amt=amount0)
+    + token_to_usd(token_id=token1, token_amt=amount1)
+
     return math.isqrt(amount0 * amount1)
+
 
 def get_somm_v3_token_rewards():
     user_token_rewards: Dict[str, float] = {}
@@ -106,7 +129,7 @@ def get_somm_v3_token_rewards():
             end_time = burn['block_timestamp']
 
         position_value = get_position_amount_usd(
-            token0=mint["token0"], token1=mint["token1"], amount0=int(mint["amount0"]), amount1=int(mint["amount1"]), mint_ts=mint["block_timestamp"])
+            token0=mint["token0"], token1=mint["token1"], amount0=int(mint["amount0"]), amount1=int(mint["amount1"]))
 
         # TODO: replace mint["liquidity"] with position value
         position = {
@@ -144,7 +167,7 @@ def get_somm_v3_token_rewards():
     return user_token_rewards
 
 
-class TokenRewardsSOMMV2:
+class TokenScoresSOMMV2:
     """
     1) Get unique pools + tokenIds
     2) Construct positions (while converting tokens to USD)
@@ -154,27 +177,24 @@ class TokenRewardsSOMMV2:
     6) Redistribute to all users
     7) Distribute participation rewards to all users
     """
-    user_token_rewards = {}
     unique_pairs: pd.DataFrame
 
     # v2 unique pools + tokenIds
     def __init__(self):
         self._load_data()
-    
+        self._scores = None
+
     @property
-    def rewards(self):
-        if self._rewards is not None:
-            return self._rewards
+    def scores(self):
+        if self._scores is not None:
+            return self._scores
 
         self._get_unique_pairs()
         self._filter_burns_for_relevant_pairs()
-        self._create_liquidity_column()
+        self._convert_amounts_columns()
         wallet_to_positions = self.get_wallet_to_positions_mapping()
-
-        # TODO Assign score to each position for each wallet
-
-        self._rewards: Dict[str, float] = user_token_rewards
-        return self._rewards
+        self._scores = self.get_scores(wallet_to_positions)
+        return self._scores
 
     def _load_data(self, data_dir: str = "query_results") -> None:
 
@@ -195,11 +215,12 @@ class TokenRewardsSOMMV2:
         self.somm_v2_mints = somm_v2_mints
         self.somm_v2_burns = somm_v2_burns
         self.v2_burns = v2_burns
-    
+
     def _get_unique_pairs(self) -> pd.DataFrame:
         unique_pairs = self.somm_v2_mints[[
             "token0", "token1", "pair"]].drop_duplicates()
-        return unique_pairs
+        self.unique_pairs = unique_pairs
+        # return unique_pairs
 
     def _filter_burns_for_relevant_pairs(self):
         self.v2_burns = self.v2_burns[self.v2_burns["pair"].isin(
@@ -207,14 +228,18 @@ class TokenRewardsSOMMV2:
         self.v2_burns.loc[:, "block_timestamp"] = pd.to_datetime(
             self.v2_burns.loc[:, "block_timestamp"], infer_datetime_format=True)
 
-    def _create_liquidity_column(self):
-        self.somm_v2_mints.amount0 = self.somm_v2_mints.amount0.apply(lambda x: int(x))
-        self.somm_v2_mints.amount1 = self.somm_v2_mints.amount1.apply(lambda x: int(x))
+    def _convert_amounts_columns(self):
+        self.somm_v2_mints.amount0 = self.somm_v2_mints.amount0.apply(
+            lambda x: int(x))
+        self.somm_v2_mints.amount1 = self.somm_v2_mints.amount1.apply(
+            lambda x: int(x))
         self.somm_v2_mints["liquidity"] = (
             self.somm_v2_mints.amount0 * self.somm_v2_mints.amount1).apply(lambda x: math.isqrt(x))
 
-        self.somm_v2_burns.amount0 = self.somm_v2_burns.amount0.apply(lambda x: int(x))
-        self.somm_v2_burns.amount1 = self.somm_v2_burns.amount1.apply(lambda x: int(x))
+        self.somm_v2_burns.amount0 = self.somm_v2_burns.amount0.apply(
+            lambda x: int(x))
+        self.somm_v2_burns.amount1 = self.somm_v2_burns.amount1.apply(
+            lambda x: int(x))
         self.somm_v2_burns["liquidity"] = (
             self.somm_v2_burns.amount0 * self.somm_v2_burns.amount1).apply(lambda x: math.isqrt(x))
 
@@ -222,8 +247,15 @@ class TokenRewardsSOMMV2:
         self.v2_burns.amount1 = self.v2_burns.amount1.apply(lambda x: int(x))
         self.v2_burns["liquidity"] = (
             self.v2_burns.amount0 * self.v2_burns.amount1).apply(lambda x: math.isqrt(x))
-    
-    def _get_pair_v2_user_positions(self, pair_info) -> Dict[Wallet, List]: 
+
+    def _create_amount_column(self, mints_burns, pair_info):
+
+        mints_burns["amount"] = mints_burns.amount0.apply(lambda token_amt: token_to_usd(
+            token_id=pair_info.token0, token_amt=token_amt)) + mints_burns.amount1.apply(lambda token_amt: token_to_usd(token_id=pair_info.token1, token_amt=token_amt))
+
+        return mints_burns
+
+    def _get_pair_v2_user_positions(self, pair_info) -> Dict[Wallet, List]:
         pair_v2_user_positions: Dict[Wallet, List] = {}
 
         somm_pair_mints = self.somm_v2_mints[
@@ -234,7 +266,8 @@ class TokenRewardsSOMMV2:
             self.v2_burns["pair"] == pair_info["pair"]].copy()
 
         # Get unique users for given pool
-        somm_pair_users: Sequence[Wallet] = somm_pair_mints["from_address"].drop_duplicates()
+        somm_pair_users: Sequence[Wallet] = somm_pair_mints["from_address"].drop_duplicates(
+        )
 
         # Construct positions for each user (for each pair)
         for user_address in somm_pair_users:
@@ -244,9 +277,8 @@ class TokenRewardsSOMMV2:
             somm_pair_user_burns = somm_pair_burns[somm_pair_burns["from_address"] == user_address].copy(
             )
             v2_pair_user_burns = v2_pair_burns[v2_pair_burns["from_address"]
-                                            == user_address].copy()
+                                               == user_address].copy()
 
-            # TODO: At this stage we can convert token amounts to USD
             # Multiply burn liquidity by -1
             somm_pair_user_burns.loc[:, "liquidity"] = somm_pair_user_burns["liquidity"].apply(
                 lambda x: -x)
@@ -258,7 +290,7 @@ class TokenRewardsSOMMV2:
                 (somm_pair_user_mints, somm_pair_user_burns, v2_pair_user_burns))
             user_pair_mints_burns = user_pair_mints_burns.sort_values(
                 'block_timestamp', ignore_index=True
-                ).drop_duplicates().reset_index(drop=True)
+            ).drop_duplicates().reset_index(drop=True)
 
             # Recall that for V2 burns don't have to directly match mints
             #   Each mint/burn will mark the end/beginning of a new "position"
@@ -269,10 +301,14 @@ class TokenRewardsSOMMV2:
                     if mint_burn["liquidity"] <= 0:
                         continue
 
+                    # Calculate amount in USD
+                    amount = get_position_amount_usd(
+                        token0=pair_info.token0, token1=pair_info.token1, amount0=mint_burn.amount0, amount1=mint_burn.amount1)
+
                     new_position = {
                         "start": mint_burn["block_timestamp"],
                         "end": None,
-                        "amount": mint_burn["liquidity"]
+                        "amount": amount
                     }
                     pair_v2_user_positions[user_address].append(new_position)
 
@@ -282,12 +318,20 @@ class TokenRewardsSOMMV2:
                     if prev_position["end"] is None:
                         prev_position["end"] = mint_burn["block_timestamp"]
 
+                    # Calculate amount in USD
+                    amount = get_position_amount_usd(
+                        token0=pair_info.token0, token1=pair_info.token1, amount0=mint_burn.amount0, amount1=mint_burn.amount1)
+
+                    # If burn, make amount negative
+                    if mint_burn["liquidity"] < 0:
+                        amount *= -1
+
                     # If there's >0 liquidity left, treat it as a new position
-                    if (prev_position["amount"] + mint_burn["liquidity"]) > 0:
+                    if (prev_position["amount"] + amount) > 0:
                         new_position = {
                             "start": mint_burn['block_timestamp'],
                             "end": None,
-                            "amount": prev_position["amount"] + mint_burn["liquidity"]
+                            "amount": prev_position["amount"] + amount
                         }
                         pair_v2_user_positions[user_address].append(
                             new_position)
@@ -300,27 +344,38 @@ class TokenRewardsSOMMV2:
 
     def get_wallet_to_positions_mapping(self) -> Dict[Wallet, List]:
 
-        pair_to_positions: Dict[str, Dict[Wallet, List]] = {}
+        wallet_to_positions: Dict[Wallet, List] = {}
         # Get positions on a pair-by-pair basis
-        for pair_idx, pair_info in self.unique_pairs.iterrows():
-            pair_v2_user_positions: Dict[Wallet, List] 
-            pair_v2_user_positions = self._get_pair_v2_user_positions(pair_info)
-            pair_to_positions[pair_info["pair"]] = pair_v2_user_positions
-        
-        wallet_to_positions: Dict[Wallet, List] = collections.defaultdict([])
-        for pair in pair_to_positions:
-            wallets, wallets_positions = pair_to_positions["pair"].items()
-            for idx, wallet in enumerate(wallets):
-                wallet_to_positions[wallet].extend(wallets_positions[idx])
+        for pair_idx, pair_info in tqdm(self.unique_pairs.iterrows(), total=len(self.unique_pairs)):
+            pair_v2_user_positions: Dict[Wallet, List] = self._get_pair_v2_user_positions(
+                pair_info)
+            # Positions are already in USD, so we can aggregate them
+            for address, positions in pair_v2_user_positions.items():
+                if address in wallet_to_positions:
+                    wallet_to_positions[address] += positions
+                else:
+                    wallet_to_positions[address] = positions
 
         return wallet_to_positions
-        
 
+    def get_scores(self, wallet_to_positions):
+        # Assign score to each position and sum across positions
+        wallet_scores: Dict[Wallet, float] = {}
+        for wallet, wallet_positions in tqdm(wallet_to_positions.items(), leave=False):
+            score = 0
+            for position in wallet_positions:
+                position_score = math.sqrt(
+                    position['amount']) * int((position['end'] - position['start']).total_seconds())
+                score += position_score
+
+            wallet_scores[wallet] = score
+
+        return wallet_scores
 
 if __name__ == "__main__":
 
     # v3_user_token_rewards = get_somm_v3_token_rewards()
-    v2_user_token_rewards: Dict[str, float] = TokenRewardsSOMMV2().rewards
+    v2_user_scores: Dict[str, float] = TokenScoresSOMMV2().scores
 
     """
     # Impose whale cap
@@ -336,5 +391,3 @@ if __name__ == "__main__":
         user_token_rewards[user_address] += redistribution_amount
         use
     """
-
-    breakpoint()
