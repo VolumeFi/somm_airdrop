@@ -55,9 +55,7 @@ def get_position_amount_usd(
     return math.isqrt(amount0 * amount1)
 
 
-def get_somm_v3_token_rewards():
-    user_token_rewards: Dict[str, float] = {}
-
+def get_somm_v3_scores():
     # DO THIS FOR BOTH V2 and V3
     # 1) Get unique pools + tokenIds
     # 2) Construct positions (while converting tokens to USD)
@@ -135,7 +133,7 @@ def get_somm_v3_token_rewards():
         position = {
             "start": mint['block_timestamp'],
             "end": end_time,
-            "amount": mint['liquidity']
+            "amount": position_value
         }
 
         if mint['from_address'] in somm_v3_user_positions:
@@ -145,26 +143,16 @@ def get_somm_v3_token_rewards():
 
     # Assign score to each position and sum across positions
     v3_user_scores = {}
-    for user_address, user_positions in tqdm(somm_v3_user_positions.items()):
+    for wallet_address, user_positions in tqdm(somm_v3_user_positions.items()):
         user_score = 0
         for position in user_positions:
-            position_score = math.isqrt(int(
+            position_score = math.sqrt(int(
                 position['amount'])) * int((position['end'] - position['start']).total_seconds())
             user_score += position_score
 
-        v3_user_scores[user_address] = user_score
+        v3_user_scores[wallet_address] = user_score
 
-    total_v3_score = sum(v3_user_scores.values())
-
-    for user_address, user_score in tqdm(v3_user_scores.items(), leave=False):
-        user_pool_token_reward = (
-            user_score / total_v3_score) * LIQ_DURATION_REWARD
-        if user_address in user_token_rewards:
-            user_token_rewards[user_address] += user_pool_token_reward
-        else:
-            user_token_rewards[user_address] = user_pool_token_reward
-
-    return user_token_rewards
+    return v3_user_scores
 
 
 class TokenScoresSOMMV2:
@@ -270,14 +258,14 @@ class TokenScoresSOMMV2:
         )
 
         # Construct positions for each user (for each pair)
-        for user_address in somm_pair_users:
-            pair_v2_user_positions[user_address] = []
-            somm_pair_user_mints = somm_pair_mints[somm_pair_mints["from_address"] == user_address].copy(
+        for wallet_address in somm_pair_users:
+            pair_v2_user_positions[wallet_address] = []
+            somm_pair_user_mints = somm_pair_mints[somm_pair_mints["from_address"] == wallet_address].copy(
             )
-            somm_pair_user_burns = somm_pair_burns[somm_pair_burns["from_address"] == user_address].copy(
+            somm_pair_user_burns = somm_pair_burns[somm_pair_burns["from_address"] == wallet_address].copy(
             )
             v2_pair_user_burns = v2_pair_burns[v2_pair_burns["from_address"]
-                                               == user_address].copy()
+                                               == wallet_address].copy()
 
             # Multiply burn liquidity by -1
             somm_pair_user_burns.loc[:, "liquidity"] = somm_pair_user_burns["liquidity"].apply(
@@ -296,7 +284,7 @@ class TokenScoresSOMMV2:
             #   Each mint/burn will mark the end/beginning of a new "position"
             for idx, mint_burn in user_pair_mints_burns.iterrows():
 
-                if len(pair_v2_user_positions[user_address]) == 0 or pair_v2_user_positions[user_address][-1]["end"] is not None:
+                if len(pair_v2_user_positions[wallet_address]) == 0 or pair_v2_user_positions[wallet_address][-1]["end"] is not None:
                     # First position must start with a mint
                     if mint_burn["liquidity"] <= 0:
                         continue
@@ -310,10 +298,10 @@ class TokenScoresSOMMV2:
                         "end": None,
                         "amount": amount
                     }
-                    pair_v2_user_positions[user_address].append(new_position)
+                    pair_v2_user_positions[wallet_address].append(new_position)
 
                 else:
-                    prev_position = pair_v2_user_positions[user_address][-1]
+                    prev_position = pair_v2_user_positions[wallet_address][-1]
                     # Check if last position needs to be filled in and close it
                     if prev_position["end"] is None:
                         prev_position["end"] = mint_burn["block_timestamp"]
@@ -333,11 +321,11 @@ class TokenScoresSOMMV2:
                             "end": None,
                             "amount": prev_position["amount"] + amount
                         }
-                        pair_v2_user_positions[user_address].append(
+                        pair_v2_user_positions[wallet_address].append(
                             new_position)
 
-            if pair_v2_user_positions[user_address][-1]["end"] is None:
-                pair_v2_user_positions[user_address][-1]["end"] = pd.Timestamp(
+            if pair_v2_user_positions[wallet_address][-1]["end"] is None:
+                pair_v2_user_positions[wallet_address][-1]["end"] = pd.Timestamp(
                     "2021-10-31", tz="UTC")
 
         return pair_v2_user_positions
@@ -361,33 +349,45 @@ class TokenScoresSOMMV2:
     def get_scores(self, wallet_to_positions):
         # Assign score to each position and sum across positions
         wallet_scores: Dict[Wallet, float] = {}
-        for wallet, wallet_positions in tqdm(wallet_to_positions.items(), leave=False):
+        for wallet_address, wallet_positions in tqdm(wallet_to_positions.items(), leave=False):
             score = 0
             for position in wallet_positions:
                 position_score = math.sqrt(
                     position['amount']) * int((position['end'] - position['start']).total_seconds())
                 score += position_score
 
-            wallet_scores[wallet] = score
+            wallet_scores[wallet_address] = score
 
         return wallet_scores
 
+
 if __name__ == "__main__":
 
-    # v3_user_token_rewards = get_somm_v3_token_rewards()
-    v2_user_scores: Dict[str, float] = TokenScoresSOMMV2().scores
+    v3_wallet_scores: Dict[Wallet, float] = get_somm_v3_scores()
+    v2_wallet_scores: Dict[Wallet, float] = TokenScoresSOMMV2().scores
 
-    """
+    # Combine wallet score dicts
+    somm_wallet_scores = collections.Counter(v3_wallet_scores)
+    somm_wallet_scores.update(collections.Counter(v2_wallet_scores))
+    somm_wallet_scores = dict(somm_wallet_scores)
+
+    # Compute rewards from scores
+    wallet_rewards: Dict[Wallet, float] = {}
+    total_score = sum(list(somm_wallet_scores.values()))
+    for wallet_address, score in somm_wallet_scores.items():
+        wallet_rewards[wallet_address] = (score / total_score) * LIQ_DURATION_REWARD + (PARTICIPATION_REWARD / len(somm_wallet_scores))
+
     # Impose whale cap
     total_redistribution_amount = 0
-    for user_address, user_reward in user_token_rewards.items():
-        if user_reward > 50000:
-            total_redistribution_amount += user_reward - 50000
-            user_token_rewards[user_address] = 50000
+    for wallet_address, reward in wallet_rewards.items():
+        if reward > 50000:
+            total_redistribution_amount += reward - 50000
+            wallet_rewards[wallet_address] = 50000
 
     # Redistribute somm from whale cap uniformly
-    redistribution_amount = total_redistribution_amount/len(user_token_rewards)
-    for user_address, user_reward in user_token_rewards.items():
-        user_token_rewards[user_address] += redistribution_amount
-        use
-    """
+    redistribution_amount = total_redistribution_amount/len(wallet_rewards)
+    for wallet_address, reward in wallet_rewards.items():
+        wallet_rewards[wallet_address] += redistribution_amount
+
+    with open('somm_app_rewards.json', 'w') as fp:
+        json.dump(wallet_rewards, fp)
