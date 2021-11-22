@@ -7,6 +7,8 @@ from tqdm import tqdm
 from typing import Dict, List, Mapping, Sequence, Union
 import json
 import time
+from utils import plot_utils
+from pathlib import Path
 
 LIQ_DURATION_REWARD = 2000000
 PARTICIPATION_REWARD = 3200000
@@ -375,7 +377,8 @@ if __name__ == "__main__":
     wallet_rewards: Dict[Wallet, float] = {}
     total_score = sum(list(somm_wallet_scores.values()))
     for wallet_address, score in somm_wallet_scores.items():
-        wallet_rewards[wallet_address] = (score / total_score) * LIQ_DURATION_REWARD + (PARTICIPATION_REWARD / len(somm_wallet_scores))
+        wallet_rewards[wallet_address] = (
+            score / total_score) * LIQ_DURATION_REWARD + (PARTICIPATION_REWARD / len(somm_wallet_scores))
 
     # Impose whale cap
     total_redistribution_amount = 0
@@ -389,5 +392,11 @@ if __name__ == "__main__":
     for wallet_address, reward in wallet_rewards.items():
         wallet_rewards[wallet_address] += redistribution_amount
 
-    with open('somm_app_rewards.json', 'w') as fp:
+    json_save_path = Path('../token_rewards/somm_app_rewards.json').resolve()
+    json_save_path.parent.mkdir(exist_ok=True, parents=True)
+
+    with open(json_save_path, 'w') as fp:
         json.dump(wallet_rewards, fp)
+
+    plot_utils.plot_reward_distribution(wallet_rewards, save_path=Path(
+        "../plots/somm_app_rewards.png").resolve(), title="Sommelier App Users SOMM Rewards")

@@ -5,7 +5,8 @@ import v3_pool_info
 import math
 import json
 from matplotlib import pyplot as plt
-
+from pathlib import Path
+from utils import plot_utils
 
 if __name__ == "__main__":
     v3_mints: pd.DataFrame = pd.read_csv(
@@ -27,7 +28,7 @@ if __name__ == "__main__":
     v3_burns = v3_burns[v3_burns["block_timestamp"]
                         < pd.Timestamp("2021-10-31", tz="UTC")]
 
-    user_token_rewards = {}
+    wallet_rewards = {}
 
     for pool_idx, pool in tqdm(enumerate(v3_pool_info.AIRDROP_POOLS), total=len(v3_pool_info.AIRDROP_POOLS)):
 
@@ -82,22 +83,34 @@ if __name__ == "__main__":
         for user_address, user_score in tqdm(pool_user_score.items(), leave=False):
             user_pool_token_reward = (
                 user_score / total_pool_score) * v3_pool_info.TOKEN_REWARD
-            if user_address in user_token_rewards:
-                user_token_rewards[user_address] += user_pool_token_reward
+            if user_address in wallet_rewards:
+                wallet_rewards[user_address] += user_pool_token_reward
             else:
-                user_token_rewards[user_address] = user_pool_token_reward
+                wallet_rewards[user_address] = user_pool_token_reward
+
+
+    plot_utils.plot_reward_distribution(wallet_rewards, save_path=Path(
+        "../plots/uniswap_v3_pool_rewards_no_cap.png").resolve())
+
 
     # Impose whale cap
     total_redistribution_amount = 0
-    for user_address, user_reward in user_token_rewards.items():
+    for user_address, user_reward in wallet_rewards.items():
         if user_reward > 50000:
             total_redistribution_amount += user_reward - 50000
-            user_token_rewards[user_address] = 50000
+            wallet_rewards[user_address] = 50000
 
     # Redistribute somm from whale cap uniformly
-    participation_reward = total_redistribution_amount/len(user_token_rewards)
-    for user_address, user_reward in user_token_rewards.items():
-        user_token_rewards[user_address] += participation_reward
+    participation_reward = total_redistribution_amount/len(wallet_rewards)
+    for user_address, user_reward in wallet_rewards.items():
+        wallet_rewards[user_address] += participation_reward
 
-    with open('v3_pool_rewards.json', 'w') as fp:
-        json.dump(user_token_rewards, fp)
+    json_save_path = Path(
+        '../token_rewards/uniswap_v3_pool_rewards.json').resolve()
+    json_save_path.parent.mkdir(exist_ok=True, parents=True)
+
+    with open(json_save_path, 'w') as fp:
+        json.dump(wallet_rewards, fp)
+
+    plot_utils.plot_reward_distribution(wallet_rewards, save_path=Path(
+        "../plots/uniswap_v3_pool_rewards.png").resolve(), title="Uniswap V3 Pools SOMM Rewards")
