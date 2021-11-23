@@ -1,3 +1,23 @@
+
+
+
+![Python 3.8+] [![License: MIT]](https://github.com/VolumeFi/somm_airdrop/blob/main/LICENSE)
+
+[Python 3.8+]: https://img.shields.io/badge/python-3.8+-blue.svg
+[License: MIT]: https://img.shields.io/badge/License-MIT-yellow.svg 
+
+  - To run: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)][Colab link]
+
+[Colab link]: https://colab.research.google.com/github/VolumeFi/somm_airdrop/blob/main/airdrop.ipynb
+
+
+
+
+
+----
+
+
+
 # @uniswap/retroactive-query <!-- omit in toc -->
  
 [![Run Queries](https://github.com/Uniswap/retroactive-query/workflows/Run%20Queries/badge.svg)](https://github.com/Uniswap/retroactive-query/actions?query=workflow%3A%22Run+Queries%22)
