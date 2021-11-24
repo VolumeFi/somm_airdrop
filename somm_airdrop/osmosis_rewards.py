@@ -44,6 +44,10 @@ if __name__ == "__main__":
         if user_reward > 50000:
             total_redistribution_amount += user_reward - 50000
             wallet_rewards[wallet_address] = 50000
+    
+    redistribution_amount = total_redistribution_amount/len(wallet_rewards)
+    for wallet_address, reward in wallet_rewards.items():
+        wallet_rewards[wallet_address] += redistribution_amount
 
     json_save_path = Path(
         '../token_rewards/osmosis_pool_rewards.json').resolve()
