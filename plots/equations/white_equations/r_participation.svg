@@ -121,7 +121,7 @@
 <g style="fill:rgb(255%,255%,255%);fill-opacity:1;">
   <use xlink:href="#glyph2-1" x="56.003906" y="17.03125"/>
 </g>
-<path style="fill:none;stroke-width:1.2;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(0%,0%,0%);stroke-opacity:1;stroke-miterlimit:10;" d="M 68.984375 -3.034242 L 168.25 -3.034242 " transform="matrix(1,0,0,1,0,17.030336)"/>
+<path style="fill:none;stroke-width:1.2;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(255%,255%,255%);stroke-opacity:1;stroke-miterlimit:10;" d="M 68.984375 -3.034242 L 168.25 -3.034242 " transform="matrix(1,0,0,1,0,17.030336)"/>
 <g style="fill:rgb(255%,255%,255%);fill-opacity:1;">
   <use xlink:href="#glyph2-2" x="72.585938" y="8.113281"/>
   <use xlink:href="#glyph2-3" x="78.585938" y="8.113281"/>
