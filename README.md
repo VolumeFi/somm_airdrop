@@ -21,7 +21,7 @@ This repository contains code to generate the Sommelier token distribution for t
 
 
 
-# Reminder: Link to blog post.  <!-- omit in toc -->
+# Blog Post: [Implementation And Analysis Of The Sommelier SIPS-002 Proposal](https://volume.finance/blog/Implementation-and-Analysis-of-the-Sommelier-SIPS-002-Proposal)
 
 
 
