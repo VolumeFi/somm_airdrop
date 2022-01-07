@@ -30,11 +30,13 @@ class OsmosisSnapshotRewards:
 
     def __init__(self):
         self.osmosis_data = self.load_snapshot_data()
-        self.total_liquidity_per_pool: Dict[PoolName, Any] = (
-            self.osmosis_data["pool_token_counter"])
+
         self.liquidity_per_user = self.osmosis_data["accounts"]
+        self.total_liquidity_per_pool = self.custom_pool_liquidity_map()
         self.user_shares_per_pool: Dict[str, Dict] = self.get_user_shares_per_pool()
         self.wallet_reward_map: Dict[Wallet, float] = self.compute_wallet_reward_map()
+        # self.total_liquidity_per_pool: Dict[PoolName, Any] = (
+        #     self.osmosis_data["pool_token_counter"])
 
     def load_snapshot_data(self):
         data_path = Path("../data/osmosis_snapshot.json").resolve()
@@ -43,7 +45,23 @@ class OsmosisSnapshotRewards:
         return osmosis_data
     
     def custom_pool_liquidity_map(self) -> Dict[PoolName, float]:
-        ...
+        total_liquidity_per_pool = {}
+        for user_address, address_dict in self.liquidity_per_user.items():
+            for pool_dict in address_dict["balance"]:
+                pool_name = pool_dict["denom"]
+                if pool_name in total_liquidity_per_pool:
+                    total_liquidity_per_pool[pool_name]['pool_total'] += int(
+                        pool_dict["amount"])
+                    total_liquidity_per_pool[pool_name]['coin_total'] += int(
+                        pool_dict["amount"])
+
+                else:
+                    total_liquidity_per_pool[pool_name] = {}
+                    total_liquidity_per_pool[pool_name]['pool_total'] = int(
+                        pool_dict["amount"])
+                    total_liquidity_per_pool[pool_name]['coin_total'] = int(
+                        pool_dict["amount"])
+        return total_liquidity_per_pool
     
     @property
     def num_pools(self) -> int:
@@ -79,8 +97,6 @@ class OsmosisSnapshotRewards:
 
     
     def compute_redistribution_amounts(self):
-
-        breakpoint()
 
         # Impose whale cap
         total_redistribution_amount = 0
