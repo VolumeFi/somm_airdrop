@@ -9,14 +9,36 @@ from utils import plot_utils
 REWARD_PER_POOL = 200000
 
 
+def get_liquidity_per_pool(osmosis_data, liquidity_per_user):
+    total_liquidity_per_pool = {}
+    for user_address, address_dict in liquidity_per_user.items():
+        for pool_dict in address_dict["balance"]:
+            pool_name = pool_dict["denom"]
+            if pool_name in total_liquidity_per_pool:
+                total_liquidity_per_pool[pool_name]['pool_total'] += int(
+                    pool_dict["amount"])
+                total_liquidity_per_pool[pool_name]['coin_total'] += int(
+                    pool_dict["amount"])
+
+            else:
+                total_liquidity_per_pool[pool_name] = {}
+                total_liquidity_per_pool[pool_name]['pool_total'] = int(
+                    pool_dict["amount"])
+                total_liquidity_per_pool[pool_name]['coin_total'] = int(
+                    pool_dict["amount"])
+    return total_liquidity_per_pool
+
+
 if __name__ == "__main__":
     # Load osmosis data
     data_path = Path("../data/osmosis_snapshot.json").resolve()
     with open(data_path, "r") as f:
         osmosis_data: dict = json.load(f)
 
-    total_liquidity_per_pool = osmosis_data["pool_token_counter"]
+    # total_liquidity_per_pool = osmosis_data["pool_token_counter"]
     liquidity_per_user = osmosis_data["accounts"]
+    total_liquidity_per_pool = get_liquidity_per_pool(
+        osmosis_data=osmosis_data, liquidity_per_user=liquidity_per_user)
 
     # Maps user address to pool to pool share
     user_shares_per_pool: dict[str, dict] = {}
@@ -28,15 +50,16 @@ if __name__ == "__main__":
         for pool_amount in user_row['balance']:
             user_share = int(pool_amount['amount']) / int(
                 total_liquidity_per_pool[pool_amount['denom']]['pool_total'])
-            user_shares_per_pool[wallet_address][pool_amount['denom']] = user_share
+            user_shares_per_pool[wallet_address][
+                pool_amount['denom']] = user_share
 
     # Compute user rewards
     wallet_rewards = {}
     for wallet_address, pool_shares in user_shares_per_pool.items():
         wallet_rewards[wallet_address] = 0
         for pool_name, user_pool_share in pool_shares.items():
-            wallet_rewards[wallet_address] += (
-                user_pool_share * REWARD_PER_POOL)
+            wallet_rewards[wallet_address] += (user_pool_share *
+                                               REWARD_PER_POOL)
 
     # Impose whale cap
     total_redistribution_amount = 0
@@ -44,8 +67,8 @@ if __name__ == "__main__":
         if user_reward > 50000:
             total_redistribution_amount += user_reward - 50000
             wallet_rewards[wallet_address] = 50000
-    
-    redistribution_amount = total_redistribution_amount/len(wallet_rewards)
+
+    redistribution_amount = total_redistribution_amount / len(wallet_rewards)
     for wallet_address, reward in wallet_rewards.items():
         wallet_rewards[wallet_address] += redistribution_amount
 
@@ -56,5 +79,7 @@ if __name__ == "__main__":
     with open(json_save_path, 'w') as fp:
         json.dump(wallet_rewards, fp)
 
-    plot_utils.plot_reward_distribution(wallet_rewards, save_path=Path(
-        "../plots/osmosis_pool_rewards.png").resolve(), title="Osmosis LP SOMM Rewards")
+    plot_utils.plot_reward_distribution(
+        wallet_rewards,
+        save_path=Path("../plots/osmosis_pool_rewards.png").resolve(),
+        title="Osmosis LP SOMM Rewards")
