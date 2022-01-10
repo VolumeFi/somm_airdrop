@@ -16,15 +16,17 @@ This repository contains code to generate the Sommelier token distribution for t
 
 ##### Total distribution: 14,600,000
 
-##### Reward totals:
-- Osmosis: 3.4M
-- Sommelier App: 5.2M
-- Uniswap v3: 6M
+| Group |  Reward totals |
+| :---: |  :---:   |
+| Osmosis | 3.4M |
+| Sommelier App | 5.2M | 
+| Uniswap v3 | 6M |
 
-##### Reward splits:
-- Osmosis: 23.3 %
-- Sommelier App: 35.6 %
-- Uniswap v3: 41.1 %
+| Group |  Reward splits |
+| :---: |  :---:   |
+| Osmosis | 23.3 % |
+| Sommelier App |35.6 % |
+| Uniswap v3 | 41.1 % |
 
 To reproduce the these token allocations, see:
 
