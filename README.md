@@ -7,28 +7,47 @@
 [License: MIT]: https://img.shields.io/badge/License-MIT-yellow.svg 
 
 
-This repository contains code to generate the Sommelier token distribution for the airdrop proposed in the [Sips-002 community proposal](https://community.sommelier.finance/t/sips-002-a-proposal-for-a-sommelier-token-airdrop-of-somm-to-select-liquidity-providers/272).
-
-
-  - To run: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)][Colab link]
-
-[Colab link]: https://colab.research.google.com/github/VolumeFi/somm_airdrop/blob/main/airdrop.ipynb
-
-#### Contents <!-- omit in toc -->
-- [Reproducing the retroactive queries from Google BigQuery](#reproducing-the-retroactive-queries-from-google-bigquery)
-
-----
-
-
-
-# Blog Post: [Implementation And Analysis Of The Sommelier SIPS-002 Proposal](https://volume.finance/blog/Implementation-and-Analysis-of-the-Sommelier-SIPS-002-Proposal)
-
+This repository contains code to generate the Sommelier token distribution for the airdrop proposed in the [Sips-002 community proposal](https://community.sommelier.finance/t/sips-002-a-proposal-for-a-sommelier-token-airdrop-of-somm-to-select-liquidity-providers/272). The Sips-002 proposal implementation is described in [another community update](https://community.sommelier.finance/t/implementation-and-analysis-of-the-sommelier-sips-002-proposal/402).
 
 
 ---
 
+# Token Distribution
 
-## Reproducing the retroactive queries from Google BigQuery
+##### Total distribution: 14,600,000
+
+##### Reward totals:
+- Osmosis: 3.4M
+- Sommelier App: 5.2M
+- Uniswap v3: 6M
+
+##### Reward splits:
+- Osmosis: 23.3 %
+- Sommelier App: 35.6 %
+- Uniswap v3: 41.1 %
+
+To reproduce the these token allocations, see:
+
+- [tokenDistributionReport.ipynb][tokenDistribution notebook link]: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)][tokenDistribution Colab link] 
+
+- [airdrop.ipynb][airdrop notebook link]: [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)][airdrop Colab link]
+
+[tokenDistribution notebook link]: https://github.com/VolumeFi/somm_airdrop/blob/main/tokenDistributionReport.ipynb 
+
+[tokenDistribution Colab link]: https://colab.research.google.com/github/VolumeFi/somm_airdrop/blob/main/tokenDistributionReport.ipynb
+
+[airdrop notebook link]: https://github.com/VolumeFi/somm_airdrop/blob/main/airdrop.ipynb
+
+[airdrop Colab link]: https://colab.research.google.com/github/VolumeFi/somm_airdrop/blob/main/airdrop.ipynb
+
+---
+
+# Corresponding Governance Proposal 
+
+Implementation And Analysis Of The Sommelier SIPS-002 Proposal: https://volume.finance/blog/Implementation-and-Analysis-of-the-Sommelier-SIPS-002-Proposal
+
+
+# Reproducing the retroactive queries from Google BigQuery
 
 Data for this token distribution is extracted from Google BigQuery's [bigquery-public-data.crypto_ethereum](https://console.cloud.google.com/bigquery?p=bigquery-public-data&d=crypto_ethereum&page=dataset) table.
 
