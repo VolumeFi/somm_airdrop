@@ -57,6 +57,9 @@ class OsmosisSnapshotRewards:
         wallet_reward_map (Dict[Wallet, float])
     """
 
+    json_save_path = Path(
+        '../token_rewards/osmosis_pool_rewards.json').resolve()
+
     def __init__(self):
         self.osmosis_data: OsmosisData = self.load_snapshot_data()
         self.wallet_to_account: Dict[Wallet, Account] = (
@@ -152,11 +155,9 @@ class OsmosisSnapshotRewards:
         for wallet_address in self.wallet_reward_map:
             self.wallet_reward_map[wallet_address] += redistribution_amount
 
-        json_save_path = Path(
-            '../token_rewards/osmosis_pool_rewards.json').resolve()
-        json_save_path.parent.mkdir(exist_ok=True, parents=True)
+        self.json_save_path.parent.mkdir(exist_ok=True, parents=True)
 
-        with open(json_save_path, 'w') as fp:
+        with open(self.json_save_path, 'w') as fp:
             json.dump(self.wallet_reward_map, fp)
 
         plot_utils.plot_reward_distribution(
@@ -169,3 +170,8 @@ if __name__ == "__main__":
 
     osr = OsmosisSnapshotRewards()
     osr.compute_redistribution_amounts()
+    with open(Path('../token_rewards/osmosis_pool_rewards.json').resolve()) as f:
+        wallet_reward_map: Dict[Wallet, float] = json.load(f)
+        total_rewards: float = sum(wallet_reward_map.values())
+        print(f"Total airdrop rewards on Osmosis: {total_rewards}")
+
