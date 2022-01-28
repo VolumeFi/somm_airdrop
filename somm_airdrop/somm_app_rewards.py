@@ -10,8 +10,14 @@ import time
 from utils import plot_utils
 from pathlib import Path
 
-LIQ_DURATION_REWARD = 2000000
+# In terms of SOMM
+LIQ_DURATION_REWARD = 2000000 
 PARTICIPATION_REWARD = 3200000
+
+# Transform to uSOMM
+LIQ_DURATION_REWARD = 2000000 * 1e6
+PARTICIPATION_REWARD = 3200000 * 1e6
+
 
 
 PairID = str
@@ -336,7 +342,8 @@ class TokenScoresSOMMV2:
 
         wallet_to_positions: Dict[Wallet, List] = {}
         # Get positions on a pair-by-pair basis
-        for pair_idx, pair_info in tqdm(self.unique_pairs.iterrows(), total=len(self.unique_pairs)):
+        for pair_idx, pair_info in tqdm(self.unique_pairs.iterrows(), 
+                                        total=len(self.unique_pairs)):
             pair_v2_user_positions: Dict[Wallet, List] = self._get_pair_v2_user_positions(
                 pair_info)
             # Positions are already in USD, so we can aggregate them
@@ -355,7 +362,8 @@ class TokenScoresSOMMV2:
             score = 0
             for position in wallet_positions:
                 position_score = math.sqrt(
-                    position['amount']) * int((position['end'] - position['start']).total_seconds())
+                    position['amount']) * int((position['end'] - position['start']
+                    ).total_seconds())
                 score += position_score
 
             wallet_scores[wallet_address] = score
@@ -392,7 +400,11 @@ if __name__ == "__main__":
     for wallet_address, reward in wallet_rewards.items():
         wallet_rewards[wallet_address] += redistribution_amount
 
-    json_save_path = Path('../token_rewards/somm_app_rewards.json').resolve()
+    # Chop off decimals because uSOMM is the smallest unit
+    for wallet, reward in wallet_rewards.items():
+        wallet_rewards[wallet] = round(reward)
+
+    json_save_path = Path('../token_rewards/somm_app_rewards_usomm.json').resolve()
     json_save_path.parent.mkdir(exist_ok=True, parents=True)
 
     with open(json_save_path, 'w') as fp:
@@ -400,3 +412,6 @@ if __name__ == "__main__":
 
     plot_utils.plot_reward_distribution(wallet_rewards, save_path=Path(
         "../plots/somm_app_rewards.png").resolve(), title="Sommelier App Users SOMM Rewards")
+
+    total_rewards: float = sum(wallet_rewards.values())
+    print(f"Total airdrop rewards on : {total_rewards}")

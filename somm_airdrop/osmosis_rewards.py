@@ -13,7 +13,8 @@ from utils import plot_utils
 
 from typing import Any, Dict, List, TypedDict
 
-REWARD_PER_POOL = 200000
+REWARD_PER_POOL = 200000 # in units of SOMM
+# REWARD_PER_POOL = REWARD_PER_POOL * 1e6 # in units of uSOMM
 
 Wallet = str
 
@@ -154,6 +155,10 @@ class OsmosisSnapshotRewards:
         redistribution_amount = total_redistribution_amount / num_wallets
         for wallet_address in self.wallet_reward_map:
             self.wallet_reward_map[wallet_address] += redistribution_amount
+        
+        # Chop off decimals because uSOMM is the smallest unit
+        # for wallet, reward in self.wallet_reward_map.items():
+        #     self.wallet_reward_map[wallet] = reward
 
         self.json_save_path.parent.mkdir(exist_ok=True, parents=True)
 
@@ -162,7 +167,7 @@ class OsmosisSnapshotRewards:
 
         plot_utils.plot_reward_distribution(
             wallet_to_reward=self.wallet_reward_map, 
-            save_path=Path("../plots/osmosis_pool_rewards.png").resolve(), 
+            save_path=Path("../plots/osmosis_pool_rewards_usomm.png").resolve(), 
             title="Osmosis LP SOMM Rewards")
 
 
