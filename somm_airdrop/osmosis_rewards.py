@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
     osr = OsmosisSnapshotRewards()
     osr.compute_redistribution_amounts()
-    with open(Path('../token_rewards/osmosis_pool_rewards.json').resolve()) as f:
+    with open(Path('../token_rewards/old_rewards_in_units_somm/osmosis_pool_rewards.json').resolve()) as f:
         wallet_reward_map: Dict[Wallet, float] = json.load(f)
         total_rewards: float = sum(wallet_reward_map.values())
         print(f"Total airdrop rewards on Osmosis: {total_rewards}")
