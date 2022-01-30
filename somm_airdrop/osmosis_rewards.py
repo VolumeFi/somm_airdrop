@@ -8,8 +8,8 @@ Examples:
   >>> osr.compute_redistribution_amounts()
 """
 import json
+import utils
 from pathlib import Path
-from utils import plot_utils
 
 from typing import Any, Dict, List, TypedDict
 
@@ -156,18 +156,14 @@ class OsmosisSnapshotRewards:
         for wallet_address in self.wallet_reward_map:
             self.wallet_reward_map[wallet_address] += redistribution_amount
         
-        # Chop off decimals because uSOMM is the smallest unit
-        # for wallet, reward in self.wallet_reward_map.items():
-        #     self.wallet_reward_map[wallet] = reward
-
         self.json_save_path.parent.mkdir(exist_ok=True, parents=True)
 
         with open(self.json_save_path, 'w') as fp:
             json.dump(self.wallet_reward_map, fp)
 
-        plot_utils.plot_reward_distribution(
+        utils.plot_reward_distribution(
             wallet_to_reward=self.wallet_reward_map, 
-            save_path=Path("../plots/osmosis_pool_rewards_usomm.png").resolve(), 
+            save_path=Path("../plots/osmosis_pool_rewards_somm.png").resolve(), 
             title="Osmosis LP SOMM Rewards")
 
 

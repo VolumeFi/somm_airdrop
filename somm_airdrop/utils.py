@@ -1,9 +1,15 @@
 import json
-from matplotlib import pyplot as plt
 import numpy as np
+from matplotlib import pyplot as plt
 from typing import Dict, List, Mapping, Union
 from pathlib import Path
 
+
+def somm2usomm(amt_somm: float) -> int:
+    return int(amt_somm * 1e6)
+
+def usomm2somm(amt_usomm: int) -> int:
+    return amt_usomm / 1e6
 
 def plot_reward_distribution(wallet_to_reward: Dict[str, Union[float, int]], save_path: Path = None, dpi=300, title=None):
     save_path.parent.mkdir(exist_ok=True, parents=True)
